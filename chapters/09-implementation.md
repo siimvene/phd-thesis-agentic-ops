@@ -901,8 +901,6 @@ async def handle_alert(alert: Alert):
 
 ---
 
-*Section 9.6+ on enterprise deployment patterns from original Chapter 6 follows...*
-
 ## 9.7 Enterprise Deployment Patterns
 
 *Derived from practitioner design exploration*
