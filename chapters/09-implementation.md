@@ -898,6 +898,53 @@ async def handle_alert(alert: Alert):
 
 **The Gap:** No current framework provides native integration with enterprise identity providers.
 
+### 9.6.2 Input Sanitization and Invisible Prompt Injection
+
+**The Gap:** Current agent frameworks do not preprocess external content to remove invisible attack vectors.
+
+Recent security research has identified a structural vulnerability in how agents process markdown documentation (Bountyy Oy, 2026). The attack exploits the gap between what humans see (rendered markdown) and what AI processes (raw source):
+
+| Element | Visible When Rendered | Readable by AI |
+|---------|----------------------|----------------|
+| HTML comments `<!-- ... -->` | No | Yes |
+| Markdown reference links `[//]: # (...)` | No | Yes |
+| Collapsed `<details>` sections | Only if expanded | Yes |
+| Entity-encoded content | Varies | Yes |
+
+**Attack Chain:**
+
+1. Attacker publishes legitimate package with clean code
+2. README contains hidden instructions in HTML comments
+3. Developer asks agent: "help me deploy this in production"
+4. Agent reads raw README, follows hidden "documentation"
+5. Agent generates code with attacker-controlled imports/endpoints
+6. Developer accepts AI-generated code (30-50% acceptance rate in studies)
+
+**Empirical Results (Claude Code, Opus 4.6):**
+
+- 100% phantom import injection rate
+- 70% overall injection rate across test variants
+- Only the subtlest variants (URL-only, TODO-framing) were ignored
+
+**Mitigation: SMAC (Safe Markdown for AI Consumption)**
+
+The proposed defense is preprocessing: render markdown before AI ingestion, so the agent sees what the human sees.
+
+```
+SMAC-1: Strip HTML comments before LLM ingestion
+SMAC-2: Strip markdown reference-only links
+SMAC-3: Render markdown first, feed rendered text to model
+SMAC-4: Log discarded content for audit trail
+```
+
+This is not a model alignment problem—the AI correctly follows documentation. The problem is that documentation contains content invisible to the human who approved it.
+
+**Implications for Enterprise:**
+
+- Supply chain security must extend to documentation, not just code
+- Agent tooling should include preprocessing layers
+- RAG pipelines embed invisible content alongside visible content
+- "Ask AI about this repo" features treat repo docs as untrusted input
 
 ---
 

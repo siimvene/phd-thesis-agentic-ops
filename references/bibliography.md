@@ -80,6 +80,15 @@
 
 ---
 
+### Prompt Injection & Supply Chain Security
+
+17. **Bountyy Oy (2026).** Invisible Prompt Injection: The Structural Vulnerability in Markdown Processing.
+    - Key concepts: SMAC (Safe Markdown for AI Consumption), DRPT benchmark, phantom imports/endpoints
+    - Attack vector: HTML comments, markdown reference links, collapsed details in documentation
+    - Finding: 70% injection rate on Claude Code (Opus 4.6), 100% phantom import rate
+    - Mitigation: Preprocess markdown to render before AI ingestion
+    - URL: https://github.com/bountyyfi/invisible-prompt-injection
+
 ## To Find / Verify
 
 - [ ] Market size source from Raza et al. reference [1]
