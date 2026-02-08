@@ -1,101 +1,119 @@
 # PhD Thesis: Agent-Enhanced Platform Engineering
 
+**Title:** Agent-Enhanced Platform Engineering: Trust Frameworks and Patterns for Observability and Incident Response
+
 **Candidate:** Siim Vene  
 **Institution:** TalTech (Tallinn University of Technology)  
-**Track:** Industry Doctorate (3-year)  
-**Started:** 2026
+**Program:** Industry Doctorate  
+**Status:** Full draft complete
 
 ---
 
-## Thesis Statement
+## Abstract
 
-> Platform engineering is evolving from declarative automation to agent-augmented systems. This thesis examines how AI agents can enhance platform engineering across the full lifecycle—from infrastructure design through deployment to operations—while maintaining the trust and governance required for enterprise environments.
-
----
-
-## The Opportunity
-
-Platform engineering involves repetitive, context-heavy work where AI agents can help:
-
-| Phase | Agent Opportunities |
-|-------|-------------------|
-| **Design** | Architecture review, pattern suggestion, documentation |
-| **Build** | IaC generation, config review, test generation |
-| **Deploy** | Deployment planning, rollout coordination, rollback |
-| **Operate** | Monitoring triage, incident diagnosis, runbook execution |
-| **Govern** | Compliance checking, policy enforcement, audit prep |
+This thesis develops a trust framework and operational patterns for integrating AI agents into platform engineering, with focus on observability, incident triage, and remediation. The core contribution is a constraint-based trust model grounded in organizational trust theory (Mayer et al., 1995) that enables organizations to calibrate appropriate autonomy levels for operational agents.
 
 ---
 
 ## Research Questions
 
-1. **Where** in the platform lifecycle can agents add most value?
-2. **How** do we maintain trust and governance at enterprise scale?
-3. **What patterns** enable effective human-agent collaboration?
-4. **What barriers** exist to adoption and how to address them?
+- **RQ1:** How can agentic systems enhance observability by transforming raw telemetry into actionable operational understanding?
+- **RQ2:** To what extent can agentic reasoning improve incident triage and root cause analysis compared to existing SRE practices?
+- **RQ3:** Under what conditions can autonomous agents safely perform remediation actions in production systems?
+- **RQ4:** What trust and governance mechanisms enable organizations to calibrate appropriate autonomy levels for operational agents?
 
 ---
 
 ## Key Contributions
 
-1. **Lifecycle Mapping** — Where agents add value across platform engineering
-2. **Integration Patterns** — Documented patterns for human-agent collaboration
-3. **Trust Framework** — The Trust Equation and governance for scale
-4. **Practical Guidance** — Implementation approaches from real experience
-5. **Adoption Roadmap** — How organizations can get started
-
----
-
-## Grounded in Practice
-
-This is an **industry doctorate** drawing on:
-
-- 15 years infrastructure/platform architecture experience
-- Current: GitOps framework, K8s-as-a-service at SMIT (government)
-- Building: SwarmOps multi-agent orchestration
-- Teaching: Platform engineering at TalTech
-- Founding: Kleidia (NIS2 compliance context)
-
-Not theoretical — formalizing what's already being done.
+1. **Trust Framework** — Constraint-based model mapping Observability, Reversibility, and Blast Radius to autonomy levels, grounded in organizational trust literature
+2. **Operational Patterns** — Eight enterprise patterns for agent-enhanced observability, triage, and remediation
+3. **Governance Guidance** — Practical controls for deploying agents in regulated environments
+4. **Evaluation Framework** — Metrics and methods for assessing agent-enhanced operations
 
 ---
 
 ## Structure
 
-| Part | Chapters | Focus |
-|------|----------|-------|
-| **I: Foundations** | 1-2 | Introduction, literature review |
-| **II: Agent-Enhanced PE** | 3-5 | Opportunity mapping, patterns, trust |
-| **III: Practice** | 6-8 | Implementation, case studies, adoption |
-| **IV: Synthesis** | 9-10 | Discussion, conclusion |
+| Chapter | Title |
+|---------|-------|
+| 1 | Introduction |
+| 2 | Literature Review |
+| 3 | The Trust Problem |
+| 4 | Trust Framework |
+| 5 | Governance and Controls |
+| 6 | Agent-Enhanced Observability |
+| 7 | Agent-Enhanced Incident Triage |
+| 8 | Agent-Assisted Remediation |
+| 9 | Implementation |
+| 10 | Evaluation Framework |
+| 11 | Conclusion |
 
 ---
 
-## Status
-
-| Chapter | Status |
-|---------|--------|
-| Ch 2: Literature Review | Draft (platform evolution, agent architectures, trust frameworks) |
-| Ch 5: Trust & Governance | Draft (Trust Equation, complexity cliff, patterns) |
-| Others | Outlined |
-
----
-
-## Project Structure
+## The Trust Equation
 
 ```
-phd-thesis/
+Trust = (Observability × Reversibility × Blast Radius) / Autonomy
+```
+
+Derived from Mayer, Davis & Schoorman's (1995) integrative model of organizational trust:
+- **Observability** ← Ability (can we verify competence?)
+- **Reversibility** ← Integrity (are actions correctable?)  
+- **Blast Radius** ← Benevolence (what's the potential harm?)
+
+---
+
+## Enterprise Patterns
+
+1. **Agent-in-Toolbox** — Agents as tools, not autonomous actors
+2. **Read-Only Default** — Start with observation, earn write access
+3. **Federated NOC** — Local agents, central coordination
+4. **Event-Driven Triage** — Reactive analysis, bounded scope
+5. **Cascading Failure Coordination** — Multi-agent incident response
+6. **Vault Integration** — Just-in-time credentials via PAM
+7. **Git-Backed Memory** — Auditable, recoverable agent state
+8. **ChatOps Delivery** — Human-in-the-loop via familiar interfaces
+
+---
+
+## Methodology
+
+**Phase 1 (Year 1):** Framework and pattern development via Design Science Research, validated through practitioner review and constraint stress-testing.
+
+**Phase 2 (Years 2-3):** Empirical validation through longitudinal industrial deployment with quantitative (MTTR, accuracy) and qualitative (trust, usability) measures.
+
+---
+
+## Practitioner Grounding
+
+This is an industry doctorate drawing on 15 years of platform/infrastructure architecture:
+- Chief Infrastructure Architect, SMIT (government sector)
+- Domain Architect, Swedbank (financial services)
+- Program Manager, TalTech (academic context)
+
+---
+
+## Repository Structure
+
+```
 ├── README.md
 ├── OUTLINE.md
 ├── chapters/
-│   ├── 02-literature-review-draft.md
-│   └── 03-trust-problem-draft.md → moves to Ch 5
-├── research/
-├── notes/
+│   ├── 01-introduction.md
+│   ├── 02-literature-review.md
+│   ├── ...
+│   └── 11-conclusion.md
 └── references/
     └── bibliography.md
 ```
 
 ---
 
-*Last updated: 2026-02-07*
+## License
+
+This work is shared for academic discussion. Please cite appropriately if referencing.
+
+---
+
+*Last updated: 2026-02-08*
