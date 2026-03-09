@@ -89,6 +89,71 @@
     - Mitigation: Preprocess markdown to render before AI ingestion
     - URL: https://github.com/bountyyfi/invisible-prompt-injection
 
+### Agent Memory Systems
+
+18. **Hu, Y. et al. (2025).** Memory in the Age of AI Agents: A Survey. *arXiv preprint arXiv:2512.13564*.
+    - Key concepts: Memory taxonomy (factual/experiential/working), memory dynamics (formation/evolution/retrieval)
+    - URL: https://arxiv.org/abs/2512.13564
+
+19. **Remil, Y. et al. (2024).** AIOps Solutions for Incident Management: Technical Guidelines and A Comprehensive Literature Review. *arXiv preprint arXiv:2404.01363*.
+    - Key concepts: Incident management lifecycle, AIOps taxonomy
+    - URL: https://arxiv.org/abs/2404.01363
+
+### Text-to-SQL Security
+
+20. **Castro, D. et al. (2025).** Prompt-to-SQL Injections in LLM-Integrated Web Applications: Risks and Defenses. *ICSE 2025*.
+    - Key concepts: P2SQL attacks, all 7 tested LLMs vulnerable
+    - URL: https://arxiv.org/abs/2308.01990
+
+21. **Li, X. et al. (2025).** Are Your LLM-based Text-to-SQL Models Secure? Exploring SQL Injection via Backdoor Attacks (ToxicSQL). *arXiv preprint arXiv:2503.05445*.
+    - Key concepts: 0.44% poisoned data → 79% attack success
+    - URL: https://arxiv.org/abs/2503.05445
+
+### Memory Poisoning Attacks
+
+22. **AGENTPOISON (NeurIPS 2024).** Red-teaming LLM Agents via Poisoning Memory.
+    - Key concepts: Backdoor attacks on agent long-term memory
+
+23. **PoisonedRAG (USENIX 2025).** Knowledge Corruption Attacks on RAG Systems.
+    - Key concepts: Malicious content injection into retrieval corpus
+
+### Foundational Security
+
+24. **Dennis, J.B. & Van Horn, E.C. (1966).** Programming Semantics for Multiprogrammed Computations. *Communications of the ACM*.
+    - Key concepts: Capability-based security (foundation for constrained operation pattern)
+
+25. **Masood, A. (2025).** The Sandboxed Mind — Principled Isolation Patterns for Prompt Injection Resilience.
+    - Key concepts: Action-Selector pattern, Dual LLM pattern, Plan-Then-Execute
+    - URL: [TBD]
+
+### Capability-Based Security for Agents
+
+26. **arXiv:2511.20920 (2025).** Securing the Model Context Protocol (MCP): Risks, Controls, and Governance.
+    - Key concepts: Three adversary types (Content Injection, Supply Chain, Inadvertent Agent), Lethal Trifecta
+    - Critical finding: 1,800+ MCP servers on public internet without auth
+    - URL: https://arxiv.org/abs/2511.20920
+
+27. **arXiv:2601.11893 (2026).** Taming Various Privilege Escalation in LLM-Based Agent Systems: A Mandatory Access Control Framework (SEAgent).
+    - Key concepts: Formal model of privilege escalation, MAC framework achieves 0% attack success rate
+    - URL: https://arxiv.org/abs/2601.11893
+
+28. **IACR ePrint 2025/2173.** Systems Security Foundations for Agentic Computing.
+    - Key concepts: "We cannot prove an LLM will always enforce policies"
+    - Critical for thesis: Theoretical foundation for architectural over instructional security
+
+29. **Meta AI (2025).** Agents Rule of Two: A Practical Approach to AI Agent Security.
+    - Key concepts: Three properties (untrustworthy inputs, sensitive access, external actions), satisfy ≤2 for safety
+    - URL: Meta AI Blog
+
+30. **Hardy, N. (1988).** The Confused Deputy: (or why capabilities might have been invented). *ACM SIGOPS*.
+    - Key concepts: Classic confused deputy attack, directly applicable to AI agents
+
+31. **ScienceDirect (2025).** From prompt injections to protocol exploits: Threats in LLM-powered AI agents workflows.
+    - Key concepts: First unified end-to-end threat model, 30+ attack techniques catalogued
+
+32. **SAGA (Northeastern, 2025).** Secure Agent Architecture.
+    - Key concepts: Cryptographic access control tokens, formal security guarantees
+
 ## To Find / Verify
 
 - [ ] Market size source from Raza et al. reference [1]

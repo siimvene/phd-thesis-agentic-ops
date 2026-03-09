@@ -68,6 +68,19 @@
 - Grounding in Mayer, Davis & Schoorman (1995)
 - Components: Observability, Reversibility, Blast Radius, Autonomy
 - Constraint-based approach: minimum safeguards per autonomy level
+- **The Constrained Operation Pattern** *(NEW)*
+  - Trust-by-construction vs. guardrails-after-the-fact
+  - LLM selects operations, deterministic code executes
+  - Mapping to trust equation dimensions
+  - Generalization across domains (database, file system, API, network)
+  - Academic precedents (capability-based security, constrained RL)
+- **Architectural Security Boundaries** *(NEW)*
+  - Why prompt rules fail: the probabilistic security problem
+  - Capability-based security (Dennis & Van Horn, 1966) applied to agents
+  - MCP as implementation pattern for capability security
+  - Failure modes: confused deputy, capability leakage, delegation attacks
+  - Meta's "Rule of Two" and the Lethal Trifecta
+  - SEAgent MAC framework (0% attack success rate)
 - Application workflow with worked examples
 - Limitations and validation needs
 
@@ -92,6 +105,12 @@
 - Pattern: Automated initial triage
 - Pattern: Root cause hypothesis generation
 - Pattern: Similar incident retrieval
+- **Pattern: Memory-Enhanced Incident Resolution** *(NEW)*
+  - Agent memory architectures (factual/experiential/working)
+  - Error-triggered recall and similar incident matching
+  - Trust considerations for memory-driven decisions
+  - Failure modes: staleness, overfitting, pollution, dilution
+  - Memory decay and validation frameworks
 - Human-agent collaboration in diagnosis
 
 #### Chapter 8: Agent-Assisted Remediation
