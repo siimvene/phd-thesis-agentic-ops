@@ -248,7 +248,110 @@ Agent reasoning based on outdated dependency maps, old architecture diagrams, or
 
 ---
 
-## 6.7 Summary
+## 6.6 Pattern: Provenance-Backed Agent State
+
+### Problem
+
+When multiple agents operate on shared state, tracing causation becomes impossible. Current systems store snapshots — the state *now* — but not how they got there. When an agent produces unexpected results, operators cannot determine: which agent changed what, when, or why. This gap makes post-incident analysis unreliable and prevents systems from learning from failures.
+
+### Solution
+
+A provenance engine that intercepts every mutation to shared state and records changes at triple-level granularity, maintaining full causal history.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Agent Actions (multiple agents)                             │
+│     │                                                       │
+│     ▼                                                       │
+│ ┌───────────────────────────────────────────────────────────┐
+│ │ Provenance Engine                                          │
+│ │                                                            │
+│ │ • Intercepts SPARQL/Update queries                         │
+│ │ • Captures: who, what, when, why, triggered-by             │
+│ │ • Delta-based storage (diffs, not full copies)             │
+│ │ • Stores in separate provenance graph                      │
+│ └───────────────────────────────────────────────────────────┘
+│     │                                                       │
+│     ▼                                                       │
+│ ┌───────────────────────────────────────────────────────────┐
+│ │ Queryable Provenance Graph                                 │
+│ │                                                            │
+│ │ Query: "What changed between 14:00 and 14:30?"             │
+│ │ Query: "Which agent modified the config service?"          │
+│ │ Query: "Restore state to 2026-03-20 09:15:00"             │
+│ └───────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Implementation (Dibowski, 2024)
+
+Bosch Research's approach uses:
+
+- **PROV-O ontology extended with RDF-star** (PROV-STAR) to represent changes at triple level
+- **Query transformation** — SPARQL-star queries against a separate provenance graph
+- **Delta-based storage** — stores diffs rather than full copies; scales to millions of triples
+
+Key capability: any past state can be restored with a single query.
+
+### Trust Framework Integration
+
+This pattern directly enables the Trust Equation's numerator factors:
+
+| Factor | Contribution |
+|--------|-------------|
+| **Observability** | Complete audit trail — every mutation captured with causal context |
+| **Reversibility** | Any historical state queryable and restorable |
+
+When both factors are maximized, the autonomy denominator can increase while maintaining appropriate trust levels. An agent operating on provenance-backed state is auditable by definition.
+
+### Multi-Agent Implications
+
+For systems like SwarmOps where multiple specialized agents coordinate on shared state:
+
+1. **Causal reconstruction** — when failures occur, trace which agent action triggered which downstream effect
+2. **Blame attribution** — not for punishment, but for targeted remediation
+3. **Cross-agent learning** — patterns of failure become visible across the agent population
+4. **Trust calibration** — agents with clean provenance histories earn higher autonomy
+
+### Autonomy Level
+
+L3-L5 (Monitored to Trusted): Enables high-autonomy operation because failures are recoverable and attributable.
+
+### Risks
+
+- Storage overhead for high-mutation workloads
+- Query performance on large provenance graphs
+- Semantic drift if provenance schema diverges from operational schema
+
+### References
+
+- Dibowski, H. (2024). Full Traceability and Provenance for Knowledge Graphs. FOIS 2024.
+
+---
+
+## 6.7 Anti-Patterns and Failure Modes
+
+### Anti-Pattern: The Oracle Trap
+
+Treating the observability agent as an oracle that has definitive answers. Agent outputs are hypotheses based on available data, not ground truth.
+
+**Mitigation:** Always present findings as hypotheses with confidence levels. Include links to raw data for verification.
+
+### Anti-Pattern: Alert Fatigue Transfer
+
+Moving alert fatigue from dashboards to agent summaries. If the agent produces too many low-value notifications, engineers will ignore it.
+
+**Mitigation:** Severity calibration, suppression for known issues, aggregation of related alerts.
+
+### Anti-Pattern: Context Staleness
+
+Agent reasoning based on outdated dependency maps, old architecture diagrams, or stale incident history.
+
+**Mitigation:** Automated context refresh, staleness indicators, graceful degradation when context is unavailable.
+
+---
+
+## 6.8 Summary
 
 Agent-enhanced observability addresses the core challenge of modern systems: too much data, too little understanding. Key patterns:
 
@@ -257,8 +360,11 @@ Agent-enhanced observability addresses the core challenge of modern systems: too
 | Contextual Log Synthesis | Signal overload | L2-L3 |
 | Cross-System Correlation | Dependency reasoning | L2 |
 | Natural Language Queries | Query language barrier | L2 |
+| Provenance-Backed Agent State | Multi-agent causation | L3-L5 |
 
-These patterns transform agents from query assistants into sense-making partners. The next chapter examines how this understanding feeds into incident triage.
+These patterns transform agents from query assistants into sense-making partners. The provenance pattern is particularly significant: it provides the architectural foundation for both Observability and Reversibility in the Trust Framework (Chapter 4), enabling higher autonomy levels while maintaining auditability.
+
+The next chapter examines how this understanding feeds into incident triage.
 
 ---
 
