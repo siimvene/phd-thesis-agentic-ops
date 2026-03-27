@@ -8,17 +8,44 @@
    - Key concepts: TRiSM framework, four pillars (Explainability, ModelOps, Security/Privacy, Governance), risk taxonomy, CSS and TUE metrics
    - URL: https://arxiv.org/abs/2506.04133
 
-2. **[Author TBD] (2025).** Levels of Autonomy for AI Agents. *arXiv preprint arXiv:2506.12469*.
-   - Key concepts: Autonomy certificates, graduated autonomy levels
+2. **Feng, K. J. K., McDonald, D. W., & Zhang, A. X. (2025).** Levels of Autonomy for AI Agents. *Knight 1st Amendment Institute "AI and Democratic Freedoms" essay series*.
+   - Key concepts: Five-level autonomy framework (Operator→Observer), autonomy certificates, user control mechanisms
+   - Thesis relevance: Proposes autonomy levels but lacks trust quantification; this thesis adds constraint-based safeguards per level
    - URL: https://arxiv.org/abs/2506.12469
 
 3. **[Author TBD] (2025).** Open Challenges in Multi-Agent Security: Towards Secure Systems of Interacting AI Agents. *arXiv preprint arXiv:2505.02077*.
    - Key concepts: Multi-agent security as distinct field
    - URL: https://arxiv.org/abs/2505.02077
 
+4. **Adimulam, A., Gupta, R., & Kumar, S. (2026).** The Orchestration of Multi-Agent Systems: Architectures, Protocols, and Enterprise Adoption. *arXiv preprint arXiv:2601.13671*.
+   - Key concepts: Unified orchestration architecture, MCP and A2A protocols, policy enforcement, state management
+   - Thesis relevance: Provides architectural foundations; this thesis adds platform engineering specificity and trust-based deployment guidance
+   - URL: https://arxiv.org/abs/2601.13671
+
+5. **Hassan, A. E., Li, H., Lin, D., Adams, B., Chen, T.-H., Kashiwa, Y., & Qiu, D. (2025).** Agentic Software Engineering: Foundational Pillars and a Research Roadmap. *arXiv preprint arXiv:2509.06216*.
+   - Key concepts: SE 3.0, dual workbench (ACE/AEE), Structured Agentic SE (SASE), development-focused
+   - Thesis relevance: Research roadmap for development; this thesis provides prescriptive framework for operations
+   - URL: https://arxiv.org/abs/2509.06216
+
+6. **Akshathala, S., Adnan, B., Ramesh, M., Vaidhyanathan, K., Muhammed, B., & Parthasarathy, K. (2025).** Beyond Task Completion: An Assessment Framework for Evaluating Agentic AI Systems. *arXiv preprint arXiv:2512.12791*.
+   - Key concepts: Four-pillar assessment (LLMs, Memory, Tools, Environment), CloudOps validation, behavioral deviation detection
+   - Thesis relevance: Evaluation framework complements this thesis's deployment framework; could validate pre-promotion
+   - URL: https://arxiv.org/abs/2512.12791
+
+7. **Takerngsaksiri, W., et al. (2024).** Human-In-the-Loop Software Development Agents. *arXiv preprint arXiv:2411.12924*.
+   - Key concepts: HULA framework, Atlassian JIRA deployment, human oversight at multiple stages
+   - Thesis relevance: Demonstrates HITL viability for development; this thesis extends to operations where time/blast radius constraints differ
+   - URL: https://arxiv.org/abs/2411.12924
+
+8. **Staufer, L., Feng, K., Wei, K., Bailey, L., Duan, Y., Yang, M., Ozisik, A. P., Casper, S., & Kolt, N. (2025).** The 2025 AI Agent Index: Documenting Technical and Safety Features of Deployed Agentic AI Systems. *arXiv preprint arXiv:2602.17753*.
+   - Key concepts: Survey of 30 deployed agents, transparency crisis, minimal safety documentation in ecosystem
+   - Thesis relevance: Their finding that ecosystem lacks safety docs motivates this thesis's trust framework for evaluating third-party agents
+   - URL: https://arxiv.org/abs/2602.17753
+   - Online index: aiagentindex.mit.edu
+
 ### Agent Architectures
 
-4. **[Various survey authors cited in Raza et al.]** - See Table 1 in TRiSM paper for comprehensive comparison
+9. **[Various survey authors cited in Raza et al.]** - See Table 1 in TRiSM paper for comprehensive comparison
 
 ## Industry Frameworks & Standards
 

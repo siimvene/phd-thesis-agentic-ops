@@ -470,7 +470,88 @@ The literature identifies persistent challenges:
 
 ---
 
-## 2.6 Research Gaps
+## 2.6 Related Work: Positioning This Thesis
+
+The rapid emergence of agentic AI has produced a surge of concurrent research addressing overlapping concerns. This section explicitly positions this thesis against the most relevant recent work to clarify both shared foundations and unique contributions.
+
+### 2.6.1 Autonomy Level Frameworks
+
+**Feng, McDonald & Zhang (2025)** propose a five-level autonomy framework ranging from "Operator" (lowest) to "Observer" (highest), with each level defining how users exert control over agents. They introduce the concept of "autonomy certificates" for governing agent behavior.
+
+**Relation to this thesis:** Their framework treats autonomy as a design choice, which aligns with this work. However, their levels describe *user roles* rather than *trust constraints*. This thesis complements their framework by providing:
+- A quantitative Trust Equation that determines what safeguards each autonomy level requires
+- Operational patterns that implement their abstract levels in platform engineering contexts
+- Specific criteria for *promotion* between levels based on demonstrated reliability
+
+### 2.6.2 Trust, Risk & Security Taxonomies
+
+**Raza et al. (2025)** adapt Gartner's TRiSM framework for multi-agent systems, organizing governance around four pillars: Explainability, ModelOps, Security/Privacy, and Governance. They contribute the Component Synergy Score (CSS) and Tool Utilization Efficacy (TUE) metrics.
+
+**Relation to this thesis:** TRiSM provides a valuable taxonomy but remains at the *what to govern* level rather than *how to implement*. This thesis:
+- Grounds the TRiSM pillars in operational patterns (Chapter 6-8)
+- Provides a constraint-based mechanism for translating pillar requirements into deployment decisions
+- Addresses platform engineering specifically, where TRiSM remains domain-agnostic
+
+### 2.6.3 Enterprise Orchestration Architectures
+
+**Adimulam, Gupta & Kumar (2026)** present a unified architectural framework integrating planning, policy enforcement, state management, and observability for enterprise multi-agent systems. They detail the Model Context Protocol (MCP) and Agent2Agent Protocol (A2A) as coordination mechanisms.
+
+**Relation to this thesis:** Their work provides essential architectural foundations that this thesis builds upon. The distinction:
+- They focus on *enterprise systems generally*; this thesis focuses on *platform engineering specifically*
+- They describe *what components are needed*; this thesis describes *how to deploy them safely*
+- Their observability addresses compliance monitoring; this thesis extends to incident response patterns
+
+### 2.6.4 Agent-Enhanced Software Engineering
+
+**Hassan et al. (2025)** propose "SE 3.0" with a dual workbench architecture: the Agent Command Environment (ACE) for human oversight and the Agent Execution Environment (AEE) for agent work. They envision "Structured Agentic Software Engineering" (SASE) as a research direction.
+
+**Relation to this thesis:** Their work addresses software *development* while this thesis addresses software *operations*. Complementary rather than competing:
+- Their ACE/AEE model parallels the supervised/autonomous phases in this work
+- Their focus on "trustworthiness" aligns with this thesis but lacks the constraint-based operationalization
+- SASE is a research *direction*; this thesis provides a prescriptive *framework*
+
+**Takerngsaksiri et al. (2024)** introduce HULA (Human-in-the-Loop LLM Agents) for software development, deployed at Atlassian. Their findings validate that human oversight reduces risk but requires workflow integration.
+
+**Relation to this thesis:** HULA demonstrates that human-in-the-loop is practical for development; this thesis extends the concept to operations, where:
+- Time constraints are more severe (incident response vs. feature development)
+- Blast radius is immediate (production impact vs. code quality)
+- The progression from L2 (supervised) to L3 (constrained autonomy) becomes critical
+
+### 2.6.5 Evaluation Frameworks
+
+**Akshathala et al. (2025)** propose a four-pillar assessment framework (LLMs, Memory, Tools, Environment) for evaluating agentic systems in CloudOps contexts. Their MontyCloud deployment revealed behavioral deviations overlooked by binary metrics.
+
+**Relation to this thesis:** Their evaluation framework is complementary—it measures agent *performance*, while this thesis addresses agent *deployment*. Specifically:
+- Their framework could validate agents before promotion to higher autonomy levels
+- Their finding that binary metrics miss behavioral deviations supports this thesis's emphasis on observability
+- They assess; this thesis prescribes
+
+### 2.6.6 Ecosystem Documentation
+
+**Staufer et al. (2025)** produce the AI Agent Index, cataloging 30 deployed agents and finding that "most developers share little information about safety, evaluations, and societal impacts."
+
+**Relation to this thesis:** Their transparency crisis finding directly motivates this work:
+- If the ecosystem lacks safety documentation, organizations need frameworks for *evaluating agents they didn't build*
+- The Trust Equation provides a structured approach for assessing third-party agents
+- Pattern documentation (Chapters 6-8) addresses the absence of operational guidance they identify
+
+### 2.6.7 Summary: This Thesis's Unique Contribution
+
+| Work | Contribution Type | Gap This Thesis Fills |
+|------|-------------------|----------------------|
+| Feng et al. (Autonomy Levels) | Design framework | No trust quantification, no patterns |
+| Raza et al. (TRiSM) | Governance taxonomy | No operational implementation |
+| Adimulam et al. (Orchestration) | Enterprise architecture | Not platform engineering specific |
+| Hassan et al. (SASE) | Research roadmap | Not prescriptive, development focus |
+| Takerngsaksiri (HULA) | HITL for development | Operations not addressed |
+| Akshathala et al. (Evaluation) | Assessment framework | Deployment not addressed |
+| Staufer et al. (AI Agent Index) | Ecosystem survey | Descriptive not prescriptive |
+
+**This thesis's unique position:** A *practitioner-oriented, constraint-based trust framework* with *operational patterns specific to platform engineering*. The Trust Equation (`Observability × Reversibility × Blast Radius / Autonomy`) provides what the field currently lacks: a quantifiable mechanism for determining appropriate safeguards at each autonomy level.
+
+---
+
+## 2.7 Research Gaps
 
 The literature review reveals several gaps this thesis aims to address:
 
