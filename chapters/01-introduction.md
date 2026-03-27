@@ -42,6 +42,8 @@ However, deploying autonomous agents in production systems creates trust challen
 
 The DORA 2024 report found that 39% of respondents have little or no trust in AI-generated code. For AI-generated remediation actions in production, trust requirements are even higher.
 
+Recent empirical work confirms these concerns are well-founded. Riddell et al. (2026) tested six LLMs across 48,000 simulated cloud root cause analysis scenarios and identified a taxonomy of 16 distinct reasoning failure modes. LLMs exhibited systematic vulnerabilities: "stalled" (reasoning loops), "biased" (anchoring on irrelevant signals), and "confused" (multi-hop reasoning failures). Critically, these failures are *unpredictable* — the same model that succeeds on one scenario may fail on a structurally similar one. This empirical evidence underscores that trust in agentic systems cannot be assumed; it must be engineered through explicit safeguards.
+
 This creates a fundamental tension: agents are most valuable where they can act autonomously (reducing human toil), but autonomous action requires trust that has not been established. Organizations need frameworks for calibrating appropriate autonomy levels and building trust incrementally.
 
 ---

@@ -65,6 +65,16 @@ This probabilistic nature creates a trust paradox:
 
 Sophisticated reasoning enables agents to handle novel situations—but also makes their behavior harder to anticipate. This is fundamentally different from traditional systems where capability and predictability are aligned.
 
+### 3.2.4 Empirical Evidence: LLM Reasoning Failures
+
+This theoretical concern has empirical grounding. Riddell et al. (2026) systematically evaluated six LLMs across 48,000 simulated cloud root cause analysis scenarios and developed a taxonomy of 16 distinct reasoning failure modes:
+
+- **Stalled:** Agent enters reasoning loops, unable to progress
+- **Biased:** Agent anchors on irrelevant or misleading signals
+- **Confused:** Multi-hop reasoning chains break down under complexity
+
+The critical finding: these failures are *structurally unpredictable*. Models that succeed on one scenario fail on structurally similar ones. Intermediate reasoning errors propagate to incorrect final diagnoses. This empirical work validates the theoretical framing: trust cannot be assumed based on capability demonstrations alone.
+
 ---
 
 

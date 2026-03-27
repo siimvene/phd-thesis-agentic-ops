@@ -89,9 +89,17 @@
     - Mitigation: Preprocess markdown to render before AI ingestion
     - URL: https://github.com/bountyyfi/invisible-prompt-injection
 
+### LLM Reasoning Failures
+
+18. **Riddell, E., Riddell, J., Sun, G., Antkiewicz, M., & Czarnecki, K. (2026).** Stalled, Biased, and Confused: Uncovering Reasoning Failures in LLMs for Cloud-Based Root Cause Analysis. *arXiv preprint arXiv:2601.22208*.
+   - Key concepts: 16-type taxonomy of RCA reasoning failures, multi-hop diagnosis vulnerabilities, intermediate reasoning error prediction
+   - Empirical finding: Tested 6 LLMs on 48,000 simulated cloud RCA scenarios; identified systematic failure modes (stalled, biased, confused)
+   - Thesis application: **Problem evidence** — proves AI-assisted operations fail unpredictably in complex scenarios, motivating the Trust Framework; failure taxonomy informs what Observability patterns must detect
+   - URL: https://arxiv.org/abs/2601.22208
+
 ### Knowledge Graph Provenance
 
-18. **Dibowski, H. (2024).** Full Traceability and Provenance for Knowledge Graphs. *FOIS 2024 (Formal Ontology in Information Systems)*.
+19. **Dibowski, H. (2024).** Full Traceability and Provenance for Knowledge Graphs. *FOIS 2024 (Formal Ontology in Information Systems)*.
     - Key concepts: PROV-STAR ontology (PROV-O + RDF-star), delta-based provenance storage, triple-level change tracking
     - Critical finding: Systems that cannot trace what changed, when, and why cannot learn from failure
     - Thesis application: Architectural foundation for agent-state auditability; directly enables Observability and Reversibility factors in Trust Equation
@@ -100,79 +108,79 @@
 
 ### Agent Memory Systems
 
-19. **Hu, Y. et al. (2025).** Memory in the Age of AI Agents: A Survey. *arXiv preprint arXiv:2512.13564*.
+20. **Hu, Y. et al. (2025).** Memory in the Age of AI Agents: A Survey. *arXiv preprint arXiv:2512.13564*.
     - Key concepts: Memory taxonomy (factual/experiential/working), memory dynamics (formation/evolution/retrieval)
     - URL: https://arxiv.org/abs/2512.13564
 
-20. **Remil, Y. et al. (2024).** AIOps Solutions for Incident Management: Technical Guidelines and A Comprehensive Literature Review. *arXiv preprint arXiv:2404.01363*.
+21. **Remil, Y. et al. (2024).** AIOps Solutions for Incident Management: Technical Guidelines and A Comprehensive Literature Review. *arXiv preprint arXiv:2404.01363*.
     - Key concepts: Incident management lifecycle, AIOps taxonomy
     - URL: https://arxiv.org/abs/2404.01363
 
 ### Text-to-SQL Security
 
-21. **Castro, D. et al. (2025).** Prompt-to-SQL Injections in LLM-Integrated Web Applications: Risks and Defenses. *ICSE 2025*.
+22. **Castro, D. et al. (2025).** Prompt-to-SQL Injections in LLM-Integrated Web Applications: Risks and Defenses. *ICSE 2025*.
     - Key concepts: P2SQL attacks, all 7 tested LLMs vulnerable
     - URL: https://arxiv.org/abs/2308.01990
 
-22. **Li, X. et al. (2025).** Are Your LLM-based Text-to-SQL Models Secure? Exploring SQL Injection via Backdoor Attacks (ToxicSQL). *arXiv preprint arXiv:2503.05445*.
+23. **Li, X. et al. (2025).** Are Your LLM-based Text-to-SQL Models Secure? Exploring SQL Injection via Backdoor Attacks (ToxicSQL). *arXiv preprint arXiv:2503.05445*.
     - Key concepts: 0.44% poisoned data → 79% attack success
     - URL: https://arxiv.org/abs/2503.05445
 
 ### Memory Poisoning Attacks
 
-23. **AGENTPOISON (NeurIPS 2024).** Red-teaming LLM Agents via Poisoning Memory.
+24. **AGENTPOISON (NeurIPS 2024).** Red-teaming LLM Agents via Poisoning Memory.
     - Key concepts: Backdoor attacks on agent long-term memory
 
-24. **PoisonedRAG (USENIX 2025).** Knowledge Corruption Attacks on RAG Systems.
+25. **PoisonedRAG (USENIX 2025).** Knowledge Corruption Attacks on RAG Systems.
     - Key concepts: Malicious content injection into retrieval corpus
 
 ### Foundational Security
 
-25. **Dennis, J.B. & Van Horn, E.C. (1966).** Programming Semantics for Multiprogrammed Computations. *Communications of the ACM*.
+26. **Dennis, J.B. & Van Horn, E.C. (1966).** Programming Semantics for Multiprogrammed Computations. *Communications of the ACM*.
     - Key concepts: Capability-based security (foundation for constrained operation pattern)
 
-26. **Masood, A. (2025).** The Sandboxed Mind — Principled Isolation Patterns for Prompt Injection Resilience.
+27. **Masood, A. (2025).** The Sandboxed Mind — Principled Isolation Patterns for Prompt Injection Resilience.
     - Key concepts: Action-Selector pattern, Dual LLM pattern, Plan-Then-Execute
     - URL: [TBD]
 
 ### Capability-Based Security for Agents
 
-27. **arXiv:2511.20920 (2025).** Securing the Model Context Protocol (MCP): Risks, Controls, and Governance.
+28. **arXiv:2511.20920 (2025).** Securing the Model Context Protocol (MCP): Risks, Controls, and Governance.
     - Key concepts: Three adversary types (Content Injection, Supply Chain, Inadvertent Agent), Lethal Trifecta
     - Critical finding: 1,800+ MCP servers on public internet without auth
     - URL: https://arxiv.org/abs/2511.20920
 
-28. **arXiv:2601.11893 (2026).** Taming Various Privilege Escalation in LLM-Based Agent Systems: A Mandatory Access Control Framework (SEAgent).
+29. **arXiv:2601.11893 (2026).** Taming Various Privilege Escalation in LLM-Based Agent Systems: A Mandatory Access Control Framework (SEAgent).
     - Key concepts: Formal model of privilege escalation, MAC framework achieves 0% attack success rate
     - URL: https://arxiv.org/abs/2601.11893
 
-29. **IACR ePrint 2025/2173.** Systems Security Foundations for Agentic Computing.
+30. **IACR ePrint 2025/2173.** Systems Security Foundations for Agentic Computing.
     - Key concepts: "We cannot prove an LLM will always enforce policies"
     - Critical for thesis: Theoretical foundation for architectural over instructional security
 
-30. **Meta AI (2025).** Agents Rule of Two: A Practical Approach to AI Agent Security.
+31. **Meta AI (2025).** Agents Rule of Two: A Practical Approach to AI Agent Security.
     - Key concepts: Three properties (untrustworthy inputs, sensitive access, external actions), satisfy ≤2 for safety
     - URL: Meta AI Blog
 
-31. **Hardy, N. (1988).** The Confused Deputy: (or why capabilities might have been invented). *ACM SIGOPS*.
+32. **Hardy, N. (1988).** The Confused Deputy: (or why capabilities might have been invented). *ACM SIGOPS*.
     - Key concepts: Classic confused deputy attack, directly applicable to AI agents
 
-32. **ScienceDirect (2025).** From prompt injections to protocol exploits: Threats in LLM-powered AI agents workflows.
+33. **ScienceDirect (2025).** From prompt injections to protocol exploits: Threats in LLM-powered AI agents workflows.
     - Key concepts: First unified end-to-end threat model, 30+ attack techniques catalogued
 
-33. **SAGA (Northeastern, 2025).** Secure Agent Architecture.
+34. **SAGA (Northeastern, 2025).** Secure Agent Architecture.
     - Key concepts: Cryptographic access control tokens, formal security guarantees
 
 ### Agent Governance & Authorization Tools
 
-34. **Grice, D. (2025).** AgentLock: Authorization Framework for AI Agents.
+35. **Grice, D. (2025).** AgentLock: Authorization Framework for AI Agents.
     - Key concepts: Three-layer separation (Agent/Authorization Gate/Tool Execution), single-use capability tokens, 187-attack empirical study
     - Critical finding: "Adversarial and legitimate requests are semantically indistinguishable" — effective protection requires architectural access control
     - Scope constraints: data boundaries, record limits, PII redaction, risk-level classification (none/low/medium/high/critical)
     - License: Apache 2.0
     - GitHub: https://github.com/webpro255/agentlock
 
-35. **DashClaw (2025).** Decision Governance Framework for AI Agents.
+36. **DashClaw (2025).** Decision Governance Framework for AI Agents.
     - Key concepts: Four-step governance loop (Guard → Record → Verify → Outcome), human-in-the-loop approval queue
     - Novel: Drift detection / "learning velocity" — tracks agent behavioral changes over time
     - Captures agent *intent* and *assumptions*, not just actions
@@ -192,4 +200,4 @@
 
 ---
 
-*Last updated: 2026-03-23*
+*Last updated: 2026-03-27*
