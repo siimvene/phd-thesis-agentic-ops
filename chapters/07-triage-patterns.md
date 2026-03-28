@@ -186,6 +186,12 @@ Suggested action: Monitor, likely not primary cause
 
 L2 (Assisted): Agent proposes hypotheses. Human investigates and decides.
 
+### Industry Implementation: HolmesGPT
+
+Robusta.dev's HolmesGPT implements this pattern in production. At KubeCon 2026, practitioners reported 80% correct root cause diagnosis in under 2 minutes [37]. Their architecture enforces read-only access with PR approval gates — the agent diagnoses but cannot directly remediate, maintaining the human-in-the-loop required for L2 autonomy.
+
+Key prerequisites they identify: strong observability infrastructure, consistent incident logging, and a structured service catalog mapping applications to resources and documentation. This validates the thesis's position that observability patterns (Chapter 6) are prerequisites for effective triage automation.
+
 ---
 
 ## 7.5 Pattern: Similar Incident Retrieval

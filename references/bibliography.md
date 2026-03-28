@@ -198,6 +198,16 @@
 34. **SAGA (Northeastern, 2025).** Secure Agent Architecture.
     - Key concepts: Cryptographic access control tokens, formal security guarantees
 
+### Industry Practitioner Evidence
+
+37. **Parkinson, E. (2026).** AIOps with Agentic Approaches at KubeCon. *LinkedIn, March 2026*.
+    - Key claims: 80% correct RCA in <2 minutes using HolmesGPT (Robusta.dev)
+    - Trust architecture: Read-only access + PR approval gate — agent diagnoses, human approves
+    - Prerequisites identified: Strong observability infra, consistent incident logging, structured service catalog
+    - Thesis relevance: **Industry validation** of L2-L3 autonomy pattern; confirms Trust Equation factors (observability prerequisite, blast radius limitation via read-only, reversibility via PR gate)
+    - Caveat: Vendor claims (Robusta.dev), no published methodology; cite as practitioner evidence, not empirical validation
+    - URL: https://www.linkedin.com/posts/elroy-parkinson-13b61a8_kubecon-aiops-sre-share-7443702477629304832-VT9L
+
 ### Agent Governance & Authorization Tools
 
 35. **Grice, D. (2025).** AgentLock: Authorization Framework for AI Agents.
