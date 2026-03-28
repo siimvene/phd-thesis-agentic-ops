@@ -1,0 +1,625 @@
+\chapter{Background and Literature Review}
+\label{ch:literature-review}
+
+% Working draft - S. Vene, 2026-02-08
+
+\section{Positioning This Review}
+\label{sec:positioning-review}
+
+Chapter~\ref{ch:introduction} traced the evolution of platform engineering through four phases: manual operations, Infrastructure as Code, GitOps, and now agent-enhanced systems. This literature review examines the academic and industry research that informs each of these phases, with particular focus on the emerging body of work on AI agents in enterprise contexts.
+
+\section{AI Agent Architectures}
+\label{sec:agent-architectures}
+
+\subsection{Defining Agentic AI}
+\label{subsec:defining-agentic-ai}
+
+Following Raza et al. \citep{raza2025}, we define Agentic AI as:
+
+\begin{quote}
+``Multi-Agent Systems (MAS) powered by LLMs that exhibit autonomous planning, tool use, memory retention, and emergent reasoning capabilities, with or without human supervision.''
+\end{quote}
+
+Key characteristics distinguishing agentic AI from traditional automation:
+\begin{itemize}
+    \item \textbf{Autonomous planning}---decomposing goals into sub-tasks
+    \item \textbf{Tool use}---invoking external APIs and systems
+    \item \textbf{Memory retention}---maintaining context across interactions
+    \item \textbf{Emergent reasoning}---behavior not explicitly programmed
+\end{itemize}
+
+\subsection{Multi-Agent System Architectures}
+\label{subsec:mas-architectures}
+
+Three dominant paradigms have emerged:
+
+\begin{table}[htbp]
+\centering
+\caption{Multi-Agent System Paradigms}
+\label{tab:mas-paradigms}
+\begin{tabular}{lll}
+\toprule
+\textbf{Paradigm} & \textbf{Representative Framework} & \textbf{Key Characteristics} \\
+\midrule
+Graph-based & LangGraph & Explicit state machines, deterministic routing, high auditability \\
+Role-based & CrewAI & Agents as team members with roles/goals, intuitive mental model \\
+Conversational & AutoGen & Agents communicate via messages, emergent coordination \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Each paradigm makes different tradeoffs between control and flexibility. Graph-based approaches offer maximum control, while conversational approaches offer maximum flexibility.
+
+\subsection{Cognitive Architectures for Language Agents (CoALA)}
+\label{subsec:coala}
+
+Sumers et al. \citep{sumers2024} provide a unifying conceptual framework for language-based agents through the Cognitive Architectures for Language Agents (CoALA) model. CoALA structures agent systems via three core components:
+
+\textbf{1. Modular Memory}
+\begin{itemize}
+    \item Working memory (current context)
+    \item Episodic memory (past experiences)
+    \item Semantic memory (learned knowledge)
+    \item Procedural memory (skills and tools)
+\end{itemize}
+
+\textbf{2. Structured Action Spaces}
+\begin{itemize}
+    \item Internal actions (reasoning, planning, retrieval)
+    \item External actions (tool use, environment interaction)
+    \item Action selection policies
+\end{itemize}
+
+\textbf{3. Decision Processes}
+\begin{itemize}
+    \item Grounded decision-making
+    \item Explicit reasoning traces
+    \item Evidence-based action selection
+\end{itemize}
+
+\textbf{Relevance to Trust:} CoALA's modular architecture enables fine-grained observability---each memory type and action can be audited independently. This supports the Trust Equation framework (Chapter~\ref{ch:trust-framework}) by providing natural observation points for monitoring agent behavior.
+
+\subsection{Session-Based vs In-Memory Orchestration}
+\label{subsec:session-vs-inmemory}
+
+A fourth paradigm, not well-covered in current literature, is \textbf{session-based orchestration} where agents run as isolated sessions with persistent state:
+
+\begin{table}[htbp]
+\centering
+\caption{Session-Based vs In-Memory Orchestration}
+\label{tab:session-vs-inmemory}
+\begin{tabular}{lll}
+\toprule
+\textbf{Property} & \textbf{In-Memory} & \textbf{Session-Based} \\
+\midrule
+State persistence & Lost on failure & Survives restarts \\
+Isolation & Shared process & Separate sessions \\
+Auditability & Requires instrumentation & Native (session logs) \\
+Latency & Low (ms) & Higher (seconds) \\
+Recovery & Complex & Simple (resume session) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Research gap:} Current surveys focus on in-memory architectures. The tradeoffs of session-based orchestration for trust and safety are underexplored.
+
+\subsection{Standards for Agent Interoperability}
+\label{subsec:agent-standards}
+
+\subsubsection{IEEE P3394: Universal Message Format for LLM Agents}
+
+The IEEE P3394 standard (in development, 2024--2026) addresses a critical gap in multi-agent systems: interoperability. As organizations deploy agents from multiple vendors and frameworks, the lack of standardized communication protocols creates integration challenges.
+
+P3394 defines:
+\begin{itemize}
+    \item \textbf{Universal Message Format (UMF)}---structured JSON/Protocol Buffer schemas for agent-to-agent communication
+    \item \textbf{Session management}---standardized handshakes, context passing, and termination
+    \item \textbf{Capability advertisement}---agents declare available tools and competencies
+    \item \textbf{Error handling}---consistent error codes and recovery protocols
+\end{itemize}
+
+\subsubsection{IEEE P3428: Modular Agent Architecture}
+
+Complementing P3394, IEEE P3428 specifies a modular agent architecture supporting:
+\begin{itemize}
+    \item \textbf{Plug-and-play integration}---agents can be composed without custom adapters
+    \item \textbf{Lifecycle management}---standardized states (initializing, ready, executing, suspended, terminated)
+    \item \textbf{Adaptive learning interfaces}---how agents update their behavior based on feedback
+\end{itemize}
+
+\textbf{Relevance to this thesis:} These emerging standards provide a foundation for the enterprise deployment patterns in Chapter~\ref{ch:implementation}. However, neither standard addresses trust calibration or governance---gaps this thesis aims to fill.
+
+\section{Trust and Trustworthiness in Autonomous Systems}
+\label{sec:trust-theory}
+
+\subsection{Defining Trust vs Trustworthiness}
+\label{subsec:trust-vs-trustworthiness}
+
+Raza et al. \citep{raza2025} make a critical distinction:
+
+\begin{quote}
+``\textbf{Trust} refers to a user's willingness to rely on an AI system, while \textbf{trustworthiness} denotes whether the system consistently behaves in a safe, fair, and predictable manner, thereby deserving that trust.''
+\end{quote}
+
+This distinction is crucial for enterprise adoption:
+\begin{itemize}
+    \item Users may \textbf{trust} a system that is not \textbf{trustworthy} (dangerous)
+    \item A \textbf{trustworthy} system may not be \textbf{trusted} (adoption failure)
+\end{itemize}
+
+Building trustworthy systems is necessary but not sufficient---organizations must also build appropriate levels of trust.
+
+\subsection{Foundational Trust Theory}
+\label{subsec:foundational-trust}
+
+\subsubsection{Organisational Trust: Mayer, Davis \& Schoorman (1995)}
+
+The seminal organisational trust model identifies three antecedents of trust:
+
+\begin{table}[htbp]
+\centering
+\caption{Mayer et al. Trust Antecedents Applied to Agents}
+\label{tab:mayer-trust}
+\begin{tabular}{lll}
+\toprule
+\textbf{Antecedent} & \textbf{Definition} & \textbf{Agent Equivalent} \\
+\midrule
+Ability & Skills and competencies enabling influence & Task completion accuracy, tool proficiency \\
+Benevolence & Belief trustee wants good for trustor & Alignment with operator goals, no hidden agendas \\
+Integrity & Adherence to principles trustor finds acceptable & Policy compliance, predictable behavior \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{quote}
+``Trust is the willingness of a party to be vulnerable to the actions of another party based on the expectation that the other will perform a particular action important to the trustor, irrespective of the ability to monitor or control that other party.'' \citep{mayer1995}
+\end{quote}
+
+\textbf{Application:} This model explains why \textit{capability alone} is insufficient for agent adoption. Organisations must also perceive that agents are \textit{aligned} (benevolence) and \textit{predictable} (integrity).
+
+\subsubsection{Trust in Automation: Lee \& See (2004)}
+
+Lee \& See's framework is foundational for understanding human-automation trust \citep{lee2004}:
+
+\textbf{Key Concepts:}
+
+\begin{enumerate}
+    \item \textbf{Appropriate Reliance}---Trust should match system capability
+    \begin{itemize}
+        \item \textit{Misuse} (overtrust)---relying when system is inadequate
+        \item \textit{Disuse} (undertrust)---failing to rely when system is adequate
+        \item \textit{Abuse}---using automation improperly
+    \end{itemize}
+
+    \item \textbf{Trust Calibration}---Alignment between trust and trustworthiness
+    \begin{itemize}
+        \item \textit{Resolution}---sensitivity to changes in trustworthiness
+        \item \textit{Specificity}---granularity of trust judgments
+    \end{itemize}
+
+    \item \textbf{Bases of Trust:}
+    \begin{itemize}
+        \item \textit{Performance}---current behavior
+        \item \textit{Process}---understanding of mechanisms
+        \item \textit{Purpose}---perceived intent/design goals
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Critical Insight:}
+\begin{quote}
+``Trust in automation should be designed for appropriate reliance, because misuse and disuse reduce performance and can increase risk.''
+\end{quote}
+
+This framing directly motivates the staged autonomy approach: rather than maximising trust, the goal is \textit{calibrating} trust to actual capability.
+
+\subsubsection{Levels of Automation: Parasuraman, Sheridan \& Wickens (2000)}
+
+Parasuraman et al. \citep{parasuraman2000} provide a structured model for automation across four stages:
+
+\begin{table}[htbp]
+\centering
+\caption{Levels of Automation by Stage}
+\label{tab:loa-stages}
+\begin{tabular}{lllll}
+\toprule
+\textbf{Stage} & \textbf{Function} & \textbf{Low Automation} & \textbf{High Automation} \\
+\midrule
+1 & Information Acquisition & Human gathers & System gathers \\
+2 & Information Analysis & Human interprets & System interprets \\
+3 & Decision Selection & Human decides & System recommends/decides \\
+4 & Action Implementation & Human acts & System acts \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key Insight:} Automation does not simply replace human work---it \textit{transforms} it. High automation at Stage 4 (action) may increase cognitive load at Stage 3 (decision oversight).
+
+\subsection{The TRiSM Framework}
+\label{subsec:trism}
+
+Gartner's AI TRiSM (Trust, Risk, and Security Management) framework, adapted for agentic AI by Raza et al. \citep{raza2025}, comprises four pillars:
+
+\textbf{Pillar 1: Explainability}
+\begin{itemize}
+    \item Decision provenance---why did the agent take this action?
+    \item Chain-of-thought visibility
+    \item Cross-agent communication transparency
+\end{itemize}
+
+\textbf{Pillar 2: ModelOps}
+\begin{itemize}
+    \item Agent lifecycle management
+    \item Version control for agent configurations
+    \item Deployment pipelines for agent updates
+    \item Rollback capabilities
+\end{itemize}
+
+\textbf{Pillar 3: Security \& Privacy}
+\begin{itemize}
+    \item Authentication between agents
+    \item Data access controls
+    \item Prompt injection defense
+    \item Privacy-preserving computation
+\end{itemize}
+
+\textbf{Pillar 4: Governance}
+\begin{itemize}
+    \item Policy enforcement
+    \item Compliance monitoring
+    \item Human oversight mechanisms
+    \item Accountability structures
+\end{itemize}
+
+\subsection{Risk Taxonomy for Agentic AI}
+\label{subsec:risk-taxonomy}
+
+Raza et al. \citep{raza2025} identify unique threat vectors in multi-agent systems:
+
+\begin{table}[htbp]
+\centering
+\caption{Risk Taxonomy for Agentic AI}
+\label{tab:risk-taxonomy}
+\begin{tabular}{lll}
+\toprule
+\textbf{Risk Category} & \textbf{Description} & \textbf{Example} \\
+\midrule
+Coordination failures & Agents fail to synchronize & Builder and reviewer on different versions \\
+Prompt injection & Malicious inputs manipulate behavior & Data contains override instructions \\
+Memory poisoning & Corrupted context propagates & Wrong info in shared memory \\
+Agent collusion & Agents coordinate against goals & Agents ``agree'' to skip validation \\
+Emergent misbehavior & Unexpected behavior from interactions & Reward hacking in multi-agent systems \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Zero Trust Architecture for Agentic Systems}
+\label{subsec:zero-trust}
+
+\subsubsection{From Network Security to Agent Security}
+
+Zero Trust Architecture (ZTA), codified in NIST SP 800-207 \citep{nist800207}, has become the dominant security paradigm for enterprise networks. The core principle---``never trust, always verify''---applies directly to agentic AI:
+
+\begin{table}[htbp]
+\centering
+\caption{Zero Trust Principles Applied to Agents}
+\label{tab:zero-trust-agents}
+\begin{tabular}{lll}
+\toprule
+\textbf{ZTA Principle} & \textbf{Network Application} & \textbf{Agent Application} \\
+\midrule
+Verify explicitly & Authenticate every request & Verify every agent action against policy \\
+Least privilege & Minimal network access & Minimal tool/data access per task \\
+Assume breach & Segment networks & Isolate agent sessions, limit blast radius \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Cloud Security Alliance Agentic Trust Framework}
+
+The CSA's Agentic Trust Framework (2026) extends Zero Trust to autonomous agents, proposing five governance questions:
+
+\begin{enumerate}
+    \item \textbf{Identity}---How do we authenticate agents and verify their provenance?
+    \item \textbf{Behavior}---How do we monitor and constrain agent actions in real-time?
+    \item \textbf{Data}---How do we control what data agents can access and generate?
+    \item \textbf{Segmentation}---How do we isolate agents to limit failure propagation?
+    \item \textbf{Incident Response}---How do we detect, respond to, and recover from agent misbehavior?
+\end{enumerate}
+
+The framework proposes an ``Intern to Principal'' maturity model where agents earn expanded privileges through demonstrated reliability---a concept this thesis develops further in the Trust Equation framework (Chapter~\ref{ch:trust-framework}).
+
+\subsection{Human-AI Trust Calibration}
+\label{subsec:trust-calibration}
+
+\subsubsection{The Calibration Problem}
+
+Trust calibration refers to the alignment between a user's trust in a system and the system's actual trustworthiness. Miscalibration manifests in two failure modes:
+
+\begin{itemize}
+    \item \textbf{Overtrust}---Users rely on agents for tasks beyond their competence, leading to errors
+    \item \textbf{Undertrust}---Users fail to leverage capable agents, negating productivity benefits
+\end{itemize}
+
+\subsubsection{Dispositional, Situational, and Learned Trust}
+
+Building on Hoff \& Bashir's (2015) three-layer trust model \citep{hoff2015}:
+
+\begin{table}[htbp]
+\centering
+\caption{Three-Layer Trust Model}
+\label{tab:three-layer-trust}
+\begin{tabular}{lll}
+\toprule
+\textbf{Trust Layer} & \textbf{Description} & \textbf{Calibration Mechanism} \\
+\midrule
+Dispositional & General tendency to trust automation & Education, organizational culture \\
+Situational & Context-specific trust adjustments & Real-time transparency, status displays \\
+Learned & Trust developed through experience & Consistent performance, graceful failures \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Transparency as Trust Mechanism}
+
+Agent transparency---making reasoning visible to users---has emerged as a key calibration mechanism. Studies show:
+\begin{itemize}
+    \item Explanations increase trust when agents are competent
+    \item Explanations \textit{decrease} trust when agents make errors (appropriate calibration)
+    \item The timing and detail level of explanations affect calibration quality
+\end{itemize}
+
+\textbf{Research gap:} Most transparency research examines single-agent systems. How transparency works in multi-agent environments---where users must trust coordination, not just individual decisions---remains underexplored.
+
+\subsection{Measuring Trust in Automation}
+\label{subsec:measuring-trust}
+
+\subsubsection{Empirical Trust Scales: Jian, Bisantz \& Drury (2000)}
+
+Jian et al. \citep{jian2000} developed an empirically validated scale for measuring trust in automated systems, addressing the lack of standardised measurement instruments. The scale comprises 12 items across two factors:
+
+\textbf{Trust Factor (7 items):}
+\begin{itemize}
+    \item The system is reliable
+    \item The system is dependable
+    \item I can trust the system
+    \item I am confident in the system
+    \item The system provides security
+    \item The system has integrity
+    \item The system is predictable
+\end{itemize}
+
+\textbf{Distrust Factor (5 items):}
+\begin{itemize}
+    \item The system is deceptive
+    \item The system behaves in an underhanded manner
+    \item I am suspicious of the system's intent
+    \item The system is harmful
+    \item The system is unreliable
+\end{itemize}
+
+\textbf{Application:} This scale enables quantitative trust measurement in agent evaluation studies. Combined with behavioral metrics (override rates, acceptance rates), it provides a multi-method assessment approach.
+
+\subsubsection{Workload Assessment: NASA-TLX}
+
+Hart \& Staveland \citep{hart1988} developed the NASA Task Load Index for subjective workload assessment across six dimensions:
+
+\begin{table}[htbp]
+\centering
+\caption{NASA-TLX Dimensions}
+\label{tab:nasa-tlx}
+\begin{tabular}{ll}
+\toprule
+\textbf{Dimension} & \textbf{Description} \\
+\midrule
+Mental Demand & Thinking, deciding, calculating required \\
+Physical Demand & Physical activity required \\
+Temporal Demand & Time pressure experienced \\
+Performance & Success in accomplishing goals \\
+Effort & Work required to achieve performance \\
+Frustration & Insecurity, stress, annoyance \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Relevance:} Agents should reduce operator workload, not merely shift it. NASA-TLX provides a validated instrument for measuring whether agent assistance actually reduces cognitive burden during incidents.
+
+\section{Regulatory Context}
+\label{sec:regulatory-context}
+
+\subsection{EU AI Act}
+\label{subsec:eu-ai-act}
+
+The EU AI Act (2024) establishes risk-based regulation:
+\begin{itemize}
+    \item \textbf{Unacceptable risk}---prohibited (e.g., social scoring)
+    \item \textbf{High risk}---strict requirements (safety-critical systems)
+    \item \textbf{Limited risk}---transparency obligations
+    \item \textbf{Minimal risk}---no restrictions
+\end{itemize}
+
+Agentic AI in platform engineering likely falls into ``limited'' or ``high'' risk depending on deployment context. Key requirements:
+\begin{itemize}
+    \item Human oversight mechanisms
+    \item Technical documentation
+    \item Risk management systems
+    \item Accuracy, robustness, cybersecurity
+\end{itemize}
+
+\subsection{NIS2 Directive}
+\label{subsec:nis2}
+
+The NIS2 Directive (2024) affects approximately 10,000 EU organizations classified as ``essential'' or ``important'' entities. Requirements relevant to agentic AI:
+\begin{itemize}
+    \item Incident response capabilities
+    \item Supply chain security (including AI components)
+    \item Risk management measures
+    \item Reporting obligations
+\end{itemize}
+
+\textbf{Research opportunity:} NIS2 compliance frameworks do not yet address agentic AI specifically. Organizations need guidance on how autonomous agents fit into their compliance posture.
+
+\subsection{AI Risk Management Frameworks}
+\label{subsec:risk-frameworks}
+
+\subsubsection{NIST AI RMF 1.0 and GenAI Profile (2024)}
+
+The NIST AI Risk Management Framework provides lifecycle risk management functions:
+
+\begin{table}[htbp]
+\centering
+\caption{NIST AI RMF Functions Applied to Agents}
+\label{tab:nist-ai-rmf}
+\begin{tabular}{lll}
+\toprule
+\textbf{Function} & \textbf{Description} & \textbf{Agent Application} \\
+\midrule
+Govern & Cultivate culture of risk management & Establish agent governance policies \\
+Map & Understand context and risks & Document agent capabilities and limitations \\
+Measure & Analyse and track risks & Monitor agent behavior and outcomes \\
+Manage & Prioritise and act on risks & Implement controls, escalation, rollback \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The GenAI Profile (NIST AI 600-1) extends these functions specifically for generative AI systems, addressing content provenance, confabulation/hallucination risks, data privacy, and human-AI interaction design.
+
+\textbf{Gap:} Neither framework specifies concrete design patterns for operational agents in platform engineering contexts---a gap this thesis addresses through the pattern catalogue (Chapters~\ref{ch:observability}--\ref{ch:remediation}).
+
+\section{Evaluation Metrics for Agentic Systems}
+\label{sec:evaluation-metrics}
+
+\subsection{Existing Metrics}
+\label{subsec:existing-metrics}
+
+Traditional ML metrics (accuracy, precision, recall) are insufficient for agentic systems. Raza et al. \citep{raza2025} propose:
+
+\textbf{Component Synergy Score (CSS)}
+\begin{itemize}
+    \item Measures quality of inter-agent collaboration
+    \item Captures whether agents work together effectively
+    \item Penalizes coordination failures
+\end{itemize}
+
+\textbf{Tool Utilization Efficacy (TUE)}
+\begin{itemize}
+    \item Measures efficiency of tool/API usage
+    \item Captures whether agents use appropriate tools
+    \item Penalizes unnecessary or incorrect tool calls
+\end{itemize}
+
+\subsection{Trust-Specific Metrics}
+\label{subsec:trust-metrics}
+
+Additional metrics needed for trust assessment:
+
+\begin{table}[htbp]
+\centering
+\caption{Trust-Specific Metrics}
+\label{tab:trust-metrics}
+\begin{tabular}{lll}
+\toprule
+\textbf{Metric} & \textbf{Description} & \textbf{Measurement} \\
+\midrule
+Predictability Index & How often does behavior match expectations? & Correct predictions / Total predictions \\
+Recovery Time & How quickly can failed actions be reversed? & Time from failure to clean state \\
+Blast Radius Score & What's the maximum impact of failure? & Affected systems $\times$ Impact severity \\
+Escalation Rate & How often do agents appropriately escalate? & Escalations / Situations requiring escalation \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{LLM-Enhanced AIOps}
+\label{subsec:llm-aiops}
+
+\subsubsection{Zhang et al. (2025): AIOps in the Era of LLMs}
+
+A comprehensive survey of LLM applications in IT operations identifies four capability categories:
+
+\begin{table}[htbp]
+\centering
+\caption{Traditional vs LLM-Enhanced AIOps}
+\label{tab:aiops-comparison}
+\begin{tabular}{lll}
+\toprule
+\textbf{Category} & \textbf{Traditional AIOps} & \textbf{LLM-Enhanced AIOps} \\
+\midrule
+Detection & Statistical anomaly detection & Context-aware anomaly explanation \\
+Diagnosis & Rule-based correlation & Multi-step reasoning, hypothesis generation \\
+Prediction & Time-series forecasting & Natural language failure prediction \\
+Remediation & Playbook execution & Adaptive action suggestion \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key Finding:} LLMs shift the frontier from \textit{prediction} to \textit{reasoning + action}, but amplify risk: if agents can influence production systems, trust and governance become as important as diagnostic quality.
+
+\textbf{Research Gap Identified:} Evaluation methods remain inconsistent; many studies lack real operational validation. Without repeatable evaluation designs that measure operational outcomes and constrain risk, organisations cannot justify increasing autonomy.
+
+\section{Related Work: Positioning This Thesis}
+\label{sec:related-work}
+
+The rapid emergence of agentic AI has produced a surge of concurrent research addressing overlapping concerns. This section explicitly positions this thesis against the most relevant recent work to clarify both shared foundations and unique contributions.
+
+\subsection{Autonomy Level Frameworks}
+\label{subsec:autonomy-frameworks}
+
+\textbf{Feng, McDonald \& Zhang (2025)} propose a five-level autonomy framework ranging from ``Operator'' (lowest) to ``Observer'' (highest), with each level defining how users exert control over agents. They introduce the concept of ``autonomy certificates'' for governing agent behavior.
+
+\textbf{Relation to this thesis:} Their framework treats autonomy as a design choice, which aligns with this work. However, their levels describe \textit{user roles} rather than \textit{trust constraints}. This thesis complements their framework by providing:
+\begin{itemize}
+    \item A quantitative Trust Equation that determines what safeguards each autonomy level requires
+    \item Operational patterns that implement their abstract levels in platform engineering contexts
+    \item Specific criteria for \textit{promotion} between levels based on demonstrated reliability
+\end{itemize}
+
+\subsection{Trust, Risk \& Security Taxonomies}
+\label{subsec:trust-taxonomies}
+
+\textbf{Raza et al. (2025)} adapt Gartner's TRiSM framework for multi-agent systems, organizing governance around four pillars: Explainability, ModelOps, Security/Privacy, and Governance. They contribute the Component Synergy Score (CSS) and Tool Utilization Efficacy (TUE) metrics.
+
+\textbf{Relation to this thesis:} TRiSM provides a valuable taxonomy but remains at the \textit{what to govern} level rather than \textit{how to implement}. This thesis:
+\begin{itemize}
+    \item Grounds the TRiSM pillars in operational patterns (Chapters~\ref{ch:observability}--\ref{ch:remediation})
+    \item Provides a constraint-based mechanism for translating pillar requirements into deployment decisions
+    \item Addresses platform engineering specifically, where TRiSM remains domain-agnostic
+\end{itemize}
+
+\subsection{Summary: This Thesis's Unique Contribution}
+\label{subsec:unique-contribution}
+
+\begin{table}[htbp]
+\centering
+\caption{Positioning Against Related Work}
+\label{tab:related-work-positioning}
+\begin{tabular}{lll}
+\toprule
+\textbf{Work} & \textbf{Contribution Type} & \textbf{Gap This Thesis Fills} \\
+\midrule
+Feng et al. (Autonomy Levels) & Design framework & No trust quantification, no patterns \\
+Raza et al. (TRiSM) & Governance taxonomy & No operational implementation \\
+Adimulam et al. (Orchestration) & Enterprise architecture & Not platform engineering specific \\
+Hassan et al. (SASE) & Research roadmap & Not prescriptive, development focus \\
+Takerngsaksiri (HULA) & HITL for development & Operations not addressed \\
+Akshathala et al. (Evaluation) & Assessment framework & Deployment not addressed \\
+Staufer et al. (AI Agent Index) & Ecosystem survey & Descriptive not prescriptive \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{This thesis's unique position:} A \textit{practitioner-oriented, constraint-based trust framework} with \textit{operational patterns specific to platform engineering}. The Trust Equation ($\text{Observability} \times \text{Reversibility} \times \text{Blast Radius} / \text{Autonomy}$) provides what the field currently lacks: a quantifiable mechanism for determining appropriate safeguards at each autonomy level.
+
+\section{Research Gaps}
+\label{sec:research-gaps}
+
+The literature review reveals several gaps this thesis aims to address:
+
+\begin{enumerate}
+    \item \textbf{Session-based orchestration}---underexplored paradigm with potential trust advantages
+    \item \textbf{Progressive trust models}---theoretical concept (Lee \& See, Parasuraman) lacking operational frameworks
+    \item \textbf{Platform engineering integration}---generic agent frameworks don't address GitOps/CI/CD specifics
+    \item \textbf{Regulatory compliance}---no clear guidance for NIS2/AI Act compliance with agentic systems
+    \item \textbf{Trust quantification}---Jian et al. scale exists but not applied to agentic platform operations
+    \item \textbf{Multi-agent transparency}---how to provide visibility into coordinated agent behavior
+    \item \textbf{Platform incident response}---SOAR concepts not yet adapted for infrastructure operations
+    \item \textbf{Autonomy promotion criteria}---no validated mechanism for evidence-based autonomy advancement
+\end{enumerate}

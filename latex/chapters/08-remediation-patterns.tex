@@ -1,0 +1,470 @@
+\chapter{Agent-Assisted Remediation}
+\label{ch:remediation}
+
+% Working draft - S. Vene, 2026-02-08
+
+\section{Introduction}
+\label{sec:remediation-intro}
+
+Remediation---taking action to resolve an incident---is where trust frameworks matter most. Observability (Chapter~\ref{ch:observability}) and triage (Chapter~\ref{ch:triage}) are fundamentally read operations; remediation is a write operation with production impact.
+
+This chapter examines RQ3: Under what conditions can autonomous or semi-autonomous agents safely and effectively perform remediation actions in production systems?
+
+The short answer: carefully, incrementally, and with explicit boundaries.
+
+\section{The Remediation Autonomy Question}
+\label{sec:remediation-autonomy}
+
+\subsection{The Stakes}
+\label{subsec:remediation-stakes}
+
+Remediation actions can:
+\begin{itemize}
+    \item Resolve incidents (the goal)
+    \item Make incidents worse (incorrect action)
+    \item Create new incidents (side effects)
+    \item Violate compliance (unauthorized changes)
+    \item Expose sensitive data (in logs, communications)
+\end{itemize}
+
+The blast radius of a remediation action can exceed the blast radius of the original incident.
+
+\subsection{The Autonomy Spectrum}
+\label{subsec:autonomy-spectrum}
+
+Applying the trust framework from Chapter~\ref{ch:trust-framework}:
+
+\begin{table}[htbp]
+\centering
+\caption{Remediation Autonomy Levels}
+\label{tab:remediation-autonomy}
+\begin{tabular}{lll}
+\toprule
+\textbf{Level} & \textbf{Remediation Autonomy} & \textbf{Example} \\
+\midrule
+L1 Supervised & Agent suggests, human executes & ``Recommend rollback to v2.3.1'' \\
+L2 Assisted & Agent prepares, human approves & ``Rollback ready. Execute? [Yes/No]'' \\
+L3 Monitored & Agent executes approved actions & Auto-rollback for known patterns \\
+L4 Bounded & Agent executes within scope & Restart pods in non-prod \\
+L5 Trusted & Autonomous remediation & Not recommended for production \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key principle:} Production remediation should rarely exceed L3, and only for well-understood, reversible actions.
+
+\subsection{The Human-Required Boundary}
+\label{subsec:human-required}
+
+Some remediation decisions should remain human-only:
+
+\begin{itemize}
+    \item \textbf{Data-affecting actions:} Database modifications, cache invalidation
+    \item \textbf{Security-affecting actions:} Credential rotation during incident (may lock out responders)
+    \item \textbf{Customer-affecting actions:} Enabling/disabling features for users
+    \item \textbf{Irreversible actions:} Data deletion, resource termination
+    \item \textbf{High-uncertainty situations:} Novel incidents, cascading failures
+\end{itemize}
+
+The goal is not full automation but \textit{appropriate} automation---agents handle the routine so humans can focus on judgment calls.
+
+\section{Pattern: Runbook Execution with Guardrails}
+\label{sec:runbook-execution}
+
+\subsection{Problem}
+
+Runbooks encode remediation knowledge but require human execution. At 3am, tired engineers may skip steps or make errors.
+
+\subsection{Solution}
+
+Agent executes documented runbook steps with pre/post verification and human oversight.
+
+\subsection{Implementation}
+
+\textbf{Runbook structure for agent execution:}
+
+\begin{lstlisting}[language=yaml,caption={Agent-Executable Runbook Schema}]
+runbook: "database-connection-pool-exhaustion"
+trigger_conditions:
+  - metric: "db_connection_pool_utilization"
+    operator: ">"
+    threshold: 95
+    duration: "5m"
+
+pre_checks:
+  - verify: "primary-db-healthy"
+    query: "SELECT 1"
+    timeout: 5s
+  - verify: "no-active-migration"
+    check: "migration_lock_status"
+
+steps:
+  - name: "Increase pool size"
+    action: "scale_connection_pool"
+    params:
+      target_size: "current * 1.5"
+      max_size: 200
+    rollback: "scale_connection_pool to original"
+    verification:
+      metric: "db_connection_pool_utilization"
+      expected: "< 80 within 2m"
+
+  - name: "Alert DBA if sustained"
+    condition: "pool_size > 150"
+    action: "page_oncall"
+    params:
+      team: "database"
+      message: "Connection pool scaled to {{pool_size}}, investigation needed"
+
+post_checks:
+  - verify: "error_rate_normalized"
+    metric: "service_error_rate"
+    expected: "< baseline + 1%"
+    timeout: 5m
+
+human_approval_required: false  # For L3, set true for L2
+max_executions_per_hour: 3
+\end{lstlisting}
+
+\textbf{Execution flow:}
+
+\begin{enumerate}
+    \item \textbf{Trigger Detection}
+    \begin{itemize}
+        \item Monitor matches trigger conditions
+        \item Check: runbook not in cooldown
+    \end{itemize}
+
+    \item \textbf{Pre-Checks}
+    \begin{itemize}
+        \item Execute all pre-check verifications
+        \item Any failure $\rightarrow$ abort, alert human
+    \end{itemize}
+
+    \item \textbf{Approval (if required)}
+    \begin{itemize}
+        \item Present plan to human
+        \item Wait for approval or timeout
+    \end{itemize}
+
+    \item \textbf{Execution}
+    \begin{itemize}
+        \item Execute steps sequentially
+        \item Verify each step before proceeding
+        \item Failure $\rightarrow$ execute rollback, alert human
+    \end{itemize}
+
+    \item \textbf{Post-Checks}
+    \begin{itemize}
+        \item Verify remediation achieved goal
+        \item Log outcome for learning
+        \item Update incident with actions taken
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Autonomy Level}
+
+L2--L3: L2 requires human approval before execution. L3 executes automatically for pre-approved runbooks.
+
+\subsection{Risks}
+
+\begin{itemize}
+    \item Runbook encodes bad practice (automating workarounds)
+    \item Pre-checks insufficient to detect unsafe conditions
+    \item Verification fails but action already taken
+    \item Runbook conflicts with human actions during incident
+\end{itemize}
+
+\textbf{Critical safeguard:} Runbooks must be reviewed before automation. Automating bad runbooks makes incidents worse, faster.
+
+\section{Pattern: Automated Rollback}
+\label{sec:automated-rollback}
+
+\subsection{Problem}
+
+When a deployment causes an incident, rollback is often the fastest remediation. But rollback requires detecting the correlation and executing the mechanics.
+
+\subsection{Solution}
+
+Agent that correlates deployment timing with incident signals and executes rollback when pattern is clear.
+
+\subsection{Implementation}
+
+\textbf{Correlation logic:}
+
+\begin{lstlisting}[caption={Rollback Correlation Logic}]
+IF:
+  - Incident started within 15 minutes of deployment
+  - Affected service matches deployed service (or dependency)
+  - No other significant changes in window
+  - Deployment is rollback-safe (flagged in CD metadata)
+
+AND:
+  - Confidence > threshold (default 80%)
+  - Previous version is known-good (ran > 1 hour without incident)
+
+THEN:
+  - Recommend rollback
+  - If L3+ autonomy: execute rollback
+  - Monitor for recovery
+\end{lstlisting}
+
+\textbf{Rollback execution:}
+
+\begin{lstlisting}[language=yaml,caption={Rollback Execution Schema}]
+rollback:
+  service: "auth-service"
+  from_version: "v2.3.2"
+  to_version: "v2.3.1"
+
+  method: "kubernetes_rollout_undo"
+  # OR: "argocd_sync_to_revision"
+  # OR: "spinnaker_rollback"
+
+  verification:
+    - wait: 30s  # For pods to stabilize
+    - check: "error_rate < threshold"
+      timeout: 2m
+    - check: "latency_p99 < baseline * 1.5"
+      timeout: 2m
+
+  on_success:
+    - update_incident: "Rolled back to {{to_version}}"
+    - notify: "incident-channel"
+
+  on_failure:
+    - alert: "Rollback failed, human intervention required"
+    - page: "on-call"
+    - preserve_state: "for debugging"
+\end{lstlisting}
+
+\subsection{Autonomy Level}
+
+L3 (Monitored) for standard deployments with clear correlation. L2 (Assisted) for complex deployments or uncertain correlation.
+
+\subsection{Deployment Metadata for Safe Rollback}
+
+CD pipelines should flag deployments as rollback-safe:
+
+\begin{lstlisting}[language=yaml,caption={Deployment Rollback Metadata}]
+deployment:
+  version: "v2.3.2"
+  rollback_safe: true
+  rollback_target: "v2.3.1"
+  rollback_blockers:
+    - "database_migration"  # If present, block auto-rollback
+    - "feature_flag_dependency"
+  min_soak_time: "1h"  # Required healthy runtime before auto-rollback eligible
+\end{lstlisting}
+
+\section{Pattern: Capacity Adjustment}
+\label{sec:capacity-adjustment}
+
+\subsection{Problem}
+
+Some incidents stem from insufficient capacity. Scaling up can resolve the immediate problem while root cause is investigated.
+
+\subsection{Solution}
+
+Agent that detects capacity-related incidents and adjusts resources within pre-defined bounds.
+
+\subsection{Implementation}
+
+\textbf{Scaling rules:}
+
+\begin{lstlisting}[language=yaml,caption={Capacity Scaling Policy}]
+scaling_policy:
+  service: "api-gateway"
+
+  triggers:
+    cpu_based:
+      metric: "container_cpu_usage_percent"
+      scale_up_threshold: 80
+      scale_down_threshold: 30
+
+    queue_based:
+      metric: "request_queue_depth"
+      scale_up_threshold: 1000
+      scale_down_threshold: 100
+
+  constraints:
+    min_replicas: 3
+    max_replicas: 20
+    scale_up_increment: 2
+    scale_down_increment: 1
+    cooldown_seconds: 300
+
+  guardrails:
+    max_cost_per_hour: 500  # USD
+    require_approval_above: 15  # replicas
+
+  autonomy: L3  # Auto-scale within constraints
+\end{lstlisting}
+
+\textbf{Scope constraints are critical:}
+\begin{itemize}
+    \item Maximum replicas (cost control)
+    \item Maximum cost rate (FinOps integration)
+    \item Cooldown periods (prevent thrashing)
+    \item Human approval for extreme scaling
+\end{itemize}
+
+\subsection{Autonomy Level}
+
+L3--L4: Autonomous within defined bounds. Human approval for scaling beyond limits.
+
+\section{Pattern: Circuit Breaking}
+\label{sec:circuit-breaking}
+
+\subsection{Problem}
+
+Cascading failures occur when a failing service overwhelms its dependencies or callers. Breaking the circuit prevents cascade.
+
+\subsection{Solution}
+
+Agent that activates circuit breakers when cascade patterns detected.
+
+\subsection{Implementation}
+
+\textbf{Circuit breaker activation:}
+
+\begin{lstlisting}[caption={Circuit Breaker Activation Logic}]
+DETECT cascade pattern:
+  - Service A error rate > threshold
+  - Service A is dependency of B, C, D
+  - B, C, D showing elevated errors
+  - Error pattern indicates timeout/unavailable (not logic errors)
+
+ACTIVATE circuit breaker:
+  - Route traffic to fallback (cached response, default value, graceful degradation)
+  - Reduce retry storms (back off callers)
+  - Isolate failure domain
+
+MONITOR for recovery:
+  - Probe Service A health
+  - Gradually restore traffic when healthy
+  - Alert if not recovered within timeout
+\end{lstlisting}
+
+\textbf{Integration with service mesh:}
+
+\begin{lstlisting}[language=yaml,caption={Istio Circuit Breaker Configuration}]
+# Istio DestinationRule for circuit breaking
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: auth-service-circuit-breaker
+spec:
+  host: auth-service
+  trafficPolicy:
+    connectionPool:
+      http:
+        h2UpgradePolicy: UPGRADE
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 1000
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 60s
+      maxEjectionPercent: 50
+\end{lstlisting}
+
+Agent's role: detect cascade patterns that outlier detection misses, and activate/tune circuit breakers dynamically.
+
+\subsection{Autonomy Level}
+
+L4 (Bounded): Autonomous circuit breaking within mesh capabilities. Human oversight for cross-service coordination.
+
+\section{When NOT to Automate Remediation}
+\label{sec:when-not-automate}
+
+\subsection{The Human-Required Boundary}
+\label{subsec:human-boundary}
+
+Some situations should always involve human judgment:
+
+\textbf{Novel failures:}
+\begin{itemize}
+    \item First-time incidents with no matching pattern
+    \item Symptoms outside known failure modes
+    \item Agent confidence below threshold
+\end{itemize}
+
+\textbf{High-stakes decisions:}
+\begin{itemize}
+    \item Customer data at risk
+    \item Regulatory/compliance implications
+    \item Significant financial impact
+\end{itemize}
+
+\textbf{Complex coordination:}
+\begin{itemize}
+    \item Multiple teams must coordinate
+    \item External parties involved (vendors, partners)
+    \item Public communication needed
+\end{itemize}
+
+\textbf{Conflicting signals:}
+\begin{itemize}
+    \item Remediation options have tradeoffs
+    \item Evidence supports multiple hypotheses
+    \item Agent recommendations conflict
+\end{itemize}
+
+\subsection{Escalation to Human}
+\label{subsec:escalation}
+
+When agent encounters boundary conditions:
+
+\begin{lstlisting}[caption={Agent Escalation Example}]
+Agent: I've identified a potential remediation but need human judgment.
+
+SITUATION:
+- Auth-service showing high error rate
+- Correlation with recent deployment (85% confidence)
+- However: deployment included database migration
+
+COMPLICATION:
+- Rollback would undo migration
+- Migration may have already affected data
+- Need DBA input on safe rollback approach
+
+RECOMMENDATION:
+- Page DBA team for migration assessment
+- Hold on automated rollback
+- I can prepare rollback command pending DBA clearance
+
+[Page DBA] [Hold] [Override - Execute Rollback]
+\end{lstlisting}
+
+\section{Summary}
+\label{sec:remediation-summary}
+
+Agent-assisted remediation requires careful scoping:
+
+\begin{table}[htbp]
+\centering
+\caption{Remediation Pattern Summary}
+\label{tab:remediation-summary}
+\begin{tabular}{llll}
+\toprule
+\textbf{Pattern} & \textbf{Action Type} & \textbf{Autonomy Level} & \textbf{Key Safeguard} \\
+\midrule
+Runbook Execution & Documented procedures & L2--L3 & Pre/post checks, step verification \\
+Automated Rollback & Deployment reversion & L2--L3 & Deployment correlation, known-good target \\
+Capacity Adjustment & Resource scaling & L3--L4 & Bounds, cost limits \\
+Circuit Breaking & Failure isolation & L4 & Service mesh integration \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key principles:}
+\begin{enumerate}
+    \item Production remediation should rarely exceed L3
+    \item Reversible actions before irreversible
+    \item Scope constraints are mandatory
+    \item Human judgment for novel/high-stakes situations
+    \item Earn autonomy through track record
+\end{enumerate}
+
+\textit{This chapter addresses RQ3: Under what conditions can autonomous or semi-autonomous agents safely and effectively perform remediation actions in production systems?}

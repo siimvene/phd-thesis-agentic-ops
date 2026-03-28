@@ -1,0 +1,169 @@
+\chapter{Introduction}
+\label{ch:introduction}
+
+% Working draft - S. Vene, 2026-02-08
+
+\section{The Operational Challenge at Scale}
+\label{sec:operational-challenge}
+
+Large software organizations operate complex, distributed systems that are increasingly difficult to observe and operate reliably. Platform engineering and Site Reliability Engineering (SRE) practices have emerged to manage this complexity, supported by observability tooling and automation. Despite these advances, operational teams face persistent challenges:
+
+\begin{itemize}
+    \item \textbf{Signal overload:} Modern systems generate telemetry volumes that exceed human processing capacity
+    \item \textbf{Cognitive load:} Incident diagnosis requires correlating signals across dozens of services and data sources
+    \item \textbf{Expertise bottleneck:} Senior engineers are required for complex diagnosis, creating 24/7 coverage challenges
+    \item \textbf{Slow resolution:} Root cause analysis consumes 40--60\% of incident time
+    \item \textbf{Learning loss:} Incident knowledge doesn't transfer effectively to prevention
+\end{itemize}
+
+The DORA 2024 report found that reducing Mean Time to Recovery (MTTR) remains critical for organizational performance, yet operational toil continues to consume platform engineering resources.
+
+\section{The Agent Opportunity}
+\label{sec:agent-opportunity}
+
+Recent advances in large language models (LLMs) and agentic AI systems create opportunities to move beyond statistical AIOps approaches. Unlike rule-based automation or statistical anomaly detection, AI agents can:
+
+\begin{itemize}
+    \item \textbf{Synthesize heterogeneous telemetry:} Correlate logs, metrics, traces, and change events
+    \item \textbf{Reason about system behavior:} Form diagnostic hypotheses based on evidence
+    \item \textbf{Retrieve institutional knowledge:} Access past incidents, runbooks, and documentation
+    \item \textbf{Support or execute remediation:} From suggesting actions to executing approved runbooks
+\end{itemize}
+
+Raza et al. \citep{raza2025} define Agentic AI as ``Multi-Agent Systems powered by LLMs that exhibit autonomous planning, tool use, memory retention, and emergent reasoning capabilities, with or without human supervision.'' This capability set aligns precisely with operational challenges: agents excel at pattern recognition, correlation, and knowledge retrieval---the cognitive tasks that consume human responder time.
+
+\section{The Trust Problem}
+\label{sec:trust-problem-intro}
+
+However, deploying autonomous agents in production systems creates trust challenges that existing frameworks don't address:
+
+\begin{itemize}
+    \item \textbf{Probabilistic behavior:} Unlike deterministic automation, agents may produce different outputs for the same input
+    \item \textbf{High-stakes context:} Production incidents have business impact; wrong actions make things worse
+    \item \textbf{Limited oversight:} Agents may operate at 3am when human oversight is minimal
+    \item \textbf{Unclear boundaries:} When should an agent act autonomously vs. defer to humans?
+\end{itemize}
+
+The DORA 2024 report found that 39\% of respondents have little or no trust in AI-generated code. For AI-generated remediation actions in production, trust requirements are even higher.
+
+Recent empirical work confirms these concerns are well-founded. Riddell et al. \citep{riddell2026} tested six LLMs across 48,000 simulated cloud root cause analysis scenarios and identified a taxonomy of 16 distinct reasoning failure modes. LLMs exhibited systematic vulnerabilities: ``stalled'' (reasoning loops), ``biased'' (anchoring on irrelevant signals), and ``confused'' (multi-hop reasoning failures). Critically, these failures are \textit{unpredictable}---the same model that succeeds on one scenario may fail on a structurally similar one. This empirical evidence underscores that trust in agentic systems cannot be assumed; it must be engineered through explicit safeguards.
+
+This creates a fundamental tension: agents are most valuable where they can act autonomously (reducing human toil), but autonomous action requires trust that has not been established. Organizations need frameworks for calibrating appropriate autonomy levels and building trust incrementally.
+
+\section{Research Questions}
+\label{sec:research-questions}
+
+This thesis investigates how AI agents can enhance operational aspects of platform engineering while maintaining appropriate trust and governance. The research questions are:
+
+\begin{description}
+    \item[RQ1:] How can agentic systems enhance observability by transforming raw telemetry into actionable operational understanding?
+    \item[RQ2:] To what extent can agentic reasoning improve incident triage and root cause analysis compared to existing SRE practices?
+    \item[RQ3:] Under what conditions can autonomous or semi-autonomous agents safely and effectively perform remediation actions in production systems?
+    \item[RQ4:] What trust and governance mechanisms enable organizations to calibrate appropriate autonomy levels for operational agents?
+\end{description}
+
+\section{Methodology}
+\label{sec:methodology}
+
+This thesis employs Design Science Research \citep{hevner2004,peffers2007}, appropriate for developing artifacts (frameworks, patterns) that solve identified problems.
+
+\subsection{Design Science Approach}
+\label{subsec:design-science}
+
+The research cycle:
+\begin{enumerate}
+    \item \textbf{Problem identification:} Operational challenges in observability, triage, remediation
+    \item \textbf{Objective definition:} Trust framework, operational patterns, governance guidance
+    \item \textbf{Design and development:} Iterative framework and pattern development
+    \item \textbf{Demonstration:} Application to operational scenarios
+    \item \textbf{Evaluation:} Practitioner review, constraint stress-testing
+    \item \textbf{Communication:} This thesis
+\end{enumerate}
+
+\subsection{Grounding in Practice}
+\label{subsec:grounding-practice}
+
+The research is grounded in 15 years of platform and infrastructure architecture experience:
+\begin{itemize}
+    \item Chief Infrastructure Architect at SMIT (government, 100+ teams)
+    \item Domain Architect at Swedbank (financial services, regulated environment)
+    \item Program Manager at TalTech (teaching, student feedback)
+    \item Founder at Kleidia (NIS2 compliance context)
+\end{itemize}
+
+This experience shapes problem identification and provides the constraint space against which solutions are tested.
+
+\subsection{Limitations Acknowledged}
+\label{subsec:limitations-acknowledged}
+
+This is practitioner-grounded research, not controlled experiments:
+\begin{itemize}
+    \item Patterns are proposed based on experience and stress-testing, not empirical measurement
+    \item The trust framework is grounded in theory \citep{mayer1995} but not empirically validated
+    \item Contributions are offered as hypotheses for practice, not proven solutions
+\end{itemize}
+
+\section{Contributions}
+\label{sec:contributions}
+
+This thesis makes four contributions:
+
+\begin{enumerate}
+    \item \textbf{Trust Framework (Chapter~\ref{ch:trust-framework}):} A constraint-based model for calibrating agent autonomy, grounded in organizational trust theory. Given a target autonomy level, the framework specifies minimum safeguards required.
+
+    \item \textbf{Operational Patterns (Chapters~\ref{ch:observability}--\ref{ch:remediation}):} Documented patterns for agent-enhanced observability, incident triage, and remediation, with autonomy levels and implementation guidance.
+
+    \item \textbf{Governance Guidance (Chapter~\ref{ch:governance}):} Enterprise deployment patterns addressing data sovereignty, cost governance, and LLM infrastructure trust.
+
+    \item \textbf{Practitioner Validation (Chapter~\ref{ch:evaluation}):} Honest assessment of limitations and future work required for empirical validation.
+\end{enumerate}
+
+\section{Scope and Delimitations}
+\label{sec:scope}
+
+\textbf{Included:}
+\begin{itemize}
+    \item Observability: transforming telemetry into understanding
+    \item Incident triage: diagnosis, root cause analysis, hypothesis generation
+    \item Remediation: runbook execution, rollback, scaling (with guardrails)
+    \item Trust and governance for operational agents
+\end{itemize}
+
+\textbf{Excluded:}
+\begin{itemize}
+    \item Design-time agent applications (architecture review, documentation generation)
+    \item Build-time agent applications (code review, test generation)
+    \item Foundation model development
+    \item Fully autonomous operation without human oversight
+    \item Purely statistical anomaly detection (not agentic)
+\end{itemize}
+
+\section{Thesis Structure}
+\label{sec:structure}
+
+\textbf{Part I: Foundations}
+\begin{itemize}
+    \item Chapter 1: Introduction (this chapter)
+    \item Chapter 2: Background and Literature Review
+\end{itemize}
+
+\textbf{Part II: Trust and Governance}
+\begin{itemize}
+    \item Chapter 3: The Trust Problem
+    \item Chapter 4: A Trust Framework for Operational Agents
+    \item Chapter 5: Governance at Enterprise Scale
+\end{itemize}
+
+\textbf{Part III: Operational Patterns}
+\begin{itemize}
+    \item Chapter 6: Agent-Enhanced Observability
+    \item Chapter 7: Agent-Enhanced Incident Triage
+    \item Chapter 8: Agent-Assisted Remediation
+\end{itemize}
+
+\textbf{Part IV: Implementation and Evaluation}
+\begin{itemize}
+    \item Chapter 9: Implementation Approaches
+    \item Chapter 10: Evaluation and Limitations
+    \item Chapter 11: Conclusion
+\end{itemize}

@@ -1,0 +1,512 @@
+\chapter{Governance at Enterprise Scale}
+\label{ch:governance}
+
+% Working draft - S. Vene, 2026-02-08
+
+\section{Introduction}
+\label{sec:governance-intro}
+
+The trust framework from Chapter~\ref{ch:trust-framework} addresses individual agent deployments. Enterprise scale introduces additional challenges: multiple teams, regulatory requirements, cost governance, and infrastructure trust. This chapter addresses governance mechanisms required when agent deployment moves beyond single-team pilots.
+
+\section{The Zero Trust Principle for Agents}
+\label{sec:zero-trust-agents}
+
+\subsection{Never Trust, Always Verify}
+\label{subsec:never-trust}
+
+The ATF applies Zero Trust principles (NIST 800-207) to AI agents:
+
+\begin{quote}
+``No AI agent should be trusted by default, regardless of purpose or claimed capability. Trust must be earned through demonstrated behavior and continuously verified through monitoring.''
+\end{quote}
+
+Traditional Zero Trust assumes human users with predictable behavior. AI agents break this assumption:
+
+\begin{table}[htbp]
+\centering
+\caption{Traditional vs Agent Zero Trust Assumptions}
+\label{tab:zero-trust-assumptions}
+\begin{tabular}{ll}
+\toprule
+\textbf{Traditional Assumption} & \textbf{AI Agent Reality} \\
+\midrule
+Human users with predictable behavior & Autonomous decision-making, non-deterministic \\
+Deterministic system rules & Probabilistic responses varying by context \\
+Binary access decisions & Access needs changing dynamically by task \\
+Trust established once & Trust requiring continuous verification \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Five Questions for Every Agent}
+\label{subsec:five-questions}
+
+ATF proposes five core questions that must be answered for every agent:
+
+\begin{enumerate}
+    \item \textbf{Identity:} ``Who are you?''
+    \begin{itemize}
+        \item Authentication, authorization, session management
+    \end{itemize}
+
+    \item \textbf{Behavior:} ``What are you doing?''
+    \begin{itemize}
+        \item Observability, anomaly detection, intent analysis
+    \end{itemize}
+
+    \item \textbf{Data Governance:} ``What data are you consuming and producing?''
+    \begin{itemize}
+        \item Input validation, PII protection, output governance
+    \end{itemize}
+
+    \item \textbf{Segmentation:} ``Where can you go?''
+    \begin{itemize}
+        \item Access control, resource boundaries, policy enforcement
+    \end{itemize}
+
+    \item \textbf{Incident Response:} ``What if you go rogue?''
+    \begin{itemize}
+        \item Circuit breakers, kill switches, containment
+    \end{itemize}
+\end{enumerate}
+
+Organizations that cannot answer these questions for an agent should not deploy that agent in production.
+
+\section{Trusting the LLM Infrastructure Layer}
+\label{sec:llm-infrastructure-trust}
+
+Zero Trust principles apply not only to agents but to the infrastructure they depend on. AI agents are powered by LLMs, and those LLMs must be hosted somewhere. This creates a trust question that many organizations overlook: \textit{Do we trust the LLM provider with our data?}
+
+\subsection{The Limits of Contractual Trust}
+\label{subsec:contractual-limits}
+
+Cloud LLM providers (OpenAI, Anthropic, Google, etc.) offer terms of service promising not to train on customer data. Enterprise agreements add data processing addendums (DPAs) with additional protections. These are contractual assurances---legally binding promises.
+
+But contractual assurances have limits:
+
+\begin{table}[htbp]
+\centering
+\caption{Limits of Contractual Trust}
+\label{tab:contractual-limits}
+\begin{tabular}{lll}
+\toprule
+\textbf{Assurance Type} & \textbf{What It Provides} & \textbf{What It Doesn't Provide} \\
+\midrule
+ToS/DPA & Legal recourse if violated & Technical guarantee of compliance \\
+Audit rights & Ability to verify (in theory) & Real-time visibility \\
+Data residency & Geographic constraints & Protection from provider access \\
+Zero retention & Promise not to store & Proof that storage didn't happen \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For non-sensitive data, these assurances may be sufficient. For genuinely sensitive data---security vulnerabilities, cryptographic material, regulated PII, crown jewel IP---``the cloud provider promises not to look'' is not a security architecture.
+
+\subsection{Data Sensitivity Classification}
+\label{subsec:data-classification}
+
+Organizations should classify data before enabling agent processing:
+
+\textbf{Tier 1: Public/Non-Sensitive---Cloud LLMs Acceptable}
+\begin{itemize}
+    \item Documentation generation from public specs
+    \item Public code review (open source)
+    \item General reasoning tasks without sensitive context
+\end{itemize}
+
+\textbf{Tier 2: Internal/Confidential---Enhanced Controls}
+\begin{itemize}
+    \item Internal code and configurations
+    \item Business logic and processes
+    \item Customer data (anonymized or with DPA coverage)
+\end{itemize}
+
+Requirements: Enterprise LLM agreements, DPAs, dedicated endpoints with data residency guarantees (e.g., Azure OpenAI in specific regions), zero-retention configurations.
+
+\textbf{Tier 3: Restricted/Classified---On-Premises Required}
+\begin{itemize}
+    \item Security vulnerabilities and active incident details
+    \item Cryptographic material and credentials
+    \item Regulated data (healthcare PHI, financial PCI, classified)
+    \item Core IP that provides competitive advantage
+\end{itemize}
+
+Requirements: Data never leaves organizational boundary. This necessitates on-premises deployment of open-source models.
+
+\subsection{On-Premises LLM Deployment}
+\label{subsec:on-premises}
+
+For Tier 3 data, organizations must run LLM inference internally. The open-source model ecosystem has matured to make this viable:
+
+\textbf{Viable Open Source Models (as of early 2026):}
+
+\begin{table}[htbp]
+\centering
+\caption{Open Source Model Options}
+\label{tab:open-source-models}
+\begin{tabular}{lll}
+\toprule
+\textbf{Model} & \textbf{Strengths} & \textbf{Considerations} \\
+\midrule
+Llama 3 (70B, 405B) & Strong general reasoning, permissive license & Largest models need significant GPU \\
+DeepSeek-Coder & Competitive code understanding & Focused on code tasks \\
+Mistral/Mixtral & Good efficiency/capability ratio & Strong European option \\
+Qwen 2.5 & Strong multilingual and code & Alibaba lineage \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Capability Tradeoffs:}
+
+\begin{table}[htbp]
+\centering
+\caption{Cloud vs On-Premises LLM Tradeoffs}
+\label{tab:cloud-vs-onprem}
+\begin{tabular}{lll}
+\toprule
+\textbf{Aspect} & \textbf{Cloud LLMs} & \textbf{On-Prem Open Source} \\
+\midrule
+Capability (2026) & State-of-art & $\sim$6--18 months behind frontier \\
+Context window & 128K--1M tokens & Typically 32K--128K \\
+Latency & Optimized & Depends on hardware investment \\
+Cost model & Per-token & Infrastructure capital + operations \\
+Data control & Contractual & Technical guarantee \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The capability gap is real but closing. For many platform engineering tasks---code review, documentation generation, incident triage---current open-source models are sufficient.
+
+\subsection{Hybrid Architecture}
+\label{subsec:hybrid-architecture}
+
+Most enterprises will operate hybrid deployments:
+
+\begin{lstlisting}[caption={Hybrid LLM Architecture}]
+Agent Request
+    |
+    v
++-------------------+
+| Sensitivity       | (classify based on context,
+| Router            |  file paths, channel, keywords)
++--------+----------+
+         |
+   +-----+-----+
+   |           |
+   v           v
++-------+  +---------+
+| Cloud |  | On-Prem |
+| LLM   |  | LLM     |
++-------+  +---------+
+\end{lstlisting}
+
+\textbf{Routing approaches:}
+\begin{itemize}
+    \item Keyword/regex matching (crude but fast)
+    \item Dedicated classification model (more accurate, adds latency)
+    \item Context-based rules (files from security paths, specific channels)
+    \item Conservative default: assume restricted unless proven otherwise
+\end{itemize}
+
+\subsection{The Trust Position}
+\label{subsec:trust-position}
+
+Organizations should adopt a clear position on LLM infrastructure trust:
+
+\begin{enumerate}
+    \item \textbf{Classify data sensitivity} before enabling agent processing
+    \item \textbf{Match model deployment to sensitivity tier}---cloud for Tier 1--2, on-prem for Tier 3
+    \item \textbf{Invest in on-prem capability}---the capability gap is closing
+    \item \textbf{Default to caution}---if uncertain whether data is sensitive, route to on-prem
+\end{enumerate}
+
+Cloud LLM ToS are not worthless---but they are insufficient for genuinely sensitive data. Technical controls that make exfiltration impossible are stronger than promises.
+
+\section{Trust Patterns for Platform Engineering}
+\label{sec:trust-patterns}
+
+\subsection{Pattern 1: Audit Everything}
+\label{subsec:audit-everything}
+
+\textbf{Problem:} Cannot trust what cannot be observed.
+
+\textbf{Solution:} Comprehensive logging of all agent actions with decision rationale.
+
+\textbf{Implementation:}
+\begin{itemize}
+    \item Structured logging with machine-parseable format
+    \item Action attribution to agent identity and session
+    \item Decision provenance capturing reasoning chain
+    \item Retention policy aligned with compliance requirements
+\end{itemize}
+
+\textbf{Platform Engineering Application:}
+Ledger systems should capture agent spawning, task assignment, and completion. Decision reasoning should be logged alongside outcomes.
+
+\subsection{Pattern 2: Rewind Capability}
+\label{subsec:rewind-capability}
+
+\textbf{Problem:} Fear of irreversible damage prevents adoption.
+
+\textbf{Solution:} Make agent actions reversible by default.
+
+\textbf{Implementation:}
+\begin{itemize}
+    \item Snapshot state before destructive operations
+    \item Transaction-like semantics for multi-step workflows
+    \item Dry-run mode for validation
+    \item Automatic rollback on failure detection
+\end{itemize}
+
+\textbf{Platform Engineering Context:}
+\begin{itemize}
+    \item Git provides natural rollback for code changes
+    \item Infrastructure should use versioned state (Terraform state, Kubernetes manifests)
+    \item Database operations need explicit transaction boundaries
+\end{itemize}
+
+\subsection{Pattern 3: Blast Radius Containment}
+\label{subsec:blast-radius-containment}
+
+\textbf{Problem:} Unlimited access enables unlimited damage.
+
+\textbf{Solution:} Strict scoping of what agents can affect.
+
+\textbf{Implementation Layers:}
+\begin{itemize}
+    \item \textbf{Identity:} Agents as non-human identities with scoped permissions
+    \item \textbf{Network:} Agents isolated from production by default
+    \item \textbf{Resource:} Token/cost limits, rate limiting
+    \item \textbf{Data:} Agents only access data relevant to current task
+    \item \textbf{Time:} Session timeouts, maximum execution windows
+\end{itemize}
+
+\textbf{Platform Engineering Application:}
+Agent workers should operate in isolated sessions with role-based permissions. Each worker should only affect the project or scope it's assigned to.
+
+\subsection{Pattern 4: Human Checkpoints}
+\label{subsec:human-checkpoints}
+
+\textbf{Problem:} Full autonomy for high-stakes decisions is unacceptable.
+
+\textbf{Solution:} Insert human approval at risk-appropriate points.
+
+\textbf{Graduated Model:}
+
+\begin{table}[htbp]
+\centering
+\caption{Human Involvement by Risk Level}
+\label{tab:human-involvement}
+\begin{tabular}{ll}
+\toprule
+\textbf{Risk Level} & \textbf{Human Involvement} \\
+\midrule
+Low & Agent acts, logs for audit \\
+Medium & Agent proposes, human approves batch \\
+High & Agent proposes, human approves each \\
+Critical & Human acts, agent assists \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Platform Engineering Application:}
+\begin{itemize}
+    \item Spec phase: Human reviews before build starts
+    \item Build phase: Parallel execution (low individual risk)
+    \item Review phase: Human approves before merge
+    \item Deploy phase: Human-only (agents don't touch production)
+\end{itemize}
+
+\subsection{Pattern 5: Progressive Trust}
+\label{subsec:progressive-trust}
+
+\textbf{Problem:} Fully constraining agents eliminates their value; fully trusting them is dangerous.
+
+\textbf{Solution:} Start constrained, expand based on track record.
+
+\textbf{Implementation:}
+\begin{lstlisting}[caption={Progressive Trust Timeline}]
+Week 1:  Builder can only modify files in project directory
+Week 2:  (95% success) Can run tests
+Week 4:  (98% success) Can commit to feature branches
+Never:   Direct push to main
+\end{lstlisting}
+
+\textbf{Metrics for Promotion:}
+\begin{itemize}
+    \item Success rate (tasks completed correctly)
+    \item Error rate and severity (failures / total actions)
+    \item Escalation appropriateness (correct escalations / situations requiring escalation)
+    \item Time since last incident
+\end{itemize}
+
+\section{The Complexity Cliff: Single-Team to Enterprise}
+\label{sec:complexity-cliff}
+
+\subsection{Where Simple Approaches Work}
+\label{subsec:simple-approaches}
+
+At small scale (single team, single project), trust management is straightforward:
+
+\begin{itemize}
+    \item \textbf{One set of credentials} shared across agents
+    \item \textbf{Single permission boundary} (the project)
+    \item \textbf{Informal oversight} (team knows what's happening)
+    \item \textbf{Simple audit} (one log to check)
+\end{itemize}
+
+Basic LangGraph setups, simple CrewAI deployments, or single-team agent platforms work well here. The trust overhead is low because the blast radius is naturally contained.
+
+\subsection{The Complexity Explosion}
+\label{subsec:complexity-explosion}
+
+As organizations scale agent deployments, complexity grows non-linearly:
+
+\begin{align}
+\text{Single team:} &\quad O(1) \\
+\text{Multiple projects:} &\quad O(p) \\
+\text{Multiple teams:} &\quad O(t \times p) \\
+\text{Multi-tenant:} &\quad O(t \times p \times r \times c)
+\end{align}
+
+Where: $t$ = teams, $p$ = projects per team, $r$ = roles/permission levels, $c$ = compliance requirements.
+
+\textbf{Dimensions that multiply:}
+
+\begin{table}[htbp]
+\centering
+\caption{Complexity Dimensions: Single-Team vs Enterprise}
+\label{tab:complexity-dimensions}
+\begin{tabular}{lll}
+\toprule
+\textbf{Dimension} & \textbf{Single-Team} & \textbf{Enterprise} \\
+\midrule
+Identity & Shared token & Per-user, per-agent, federated \\
+Permissions & All-or-nothing & RBAC, ABAC, dynamic scoping \\
+Audit & Single log & Per-tenant, compliance-grade, tamper-proof \\
+Blast radius & Project & Must be contained per-tenant \\
+Credentials & Inherited & Per-agent, rotated, vaulted \\
+Compliance & Informal & SOC2, GDPR, industry-specific \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The Single-Portal Trap}
+\label{subsec:single-portal}
+
+A natural response to complexity is centralization: one portal to manage all agents. This fails at scale because:
+
+\begin{enumerate}
+    \item \textbf{Bottleneck:} Central team can't keep pace with demand
+    \item \textbf{Context loss:} Central team lacks domain knowledge for permission decisions
+    \item \textbf{Inflexibility:} One-size-fits-all policies don't fit diverse teams
+    \item \textbf{Single point of failure:} Compromise of portal compromises everything
+\end{enumerate}
+
+Enterprise patterns require \textbf{federation}: central framework, distributed implementation.
+
+\subsection{What Current Tools Lack}
+\label{subsec:tool-gaps}
+
+Analysis of current orchestration tools reveals common gaps at scale:
+
+\begin{table}[htbp]
+\centering
+\caption{Current Tool Limitations at Enterprise Scale}
+\label{tab:tool-limitations}
+\begin{tabular}{llll}
+\toprule
+\textbf{Tool} & \textbf{Works At} & \textbf{Fails At} & \textbf{Missing} \\
+\midrule
+LangGraph & Single workflow & Multi-tenant & Identity federation, tenant isolation \\
+CrewAI & Single team & Cross-team & Permission delegation, audit aggregation \\
+AutoGen & Research/prototype & Production & Everything (not designed for enterprise) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Common gaps across all tools:}
+\begin{itemize}
+    \item No standard interface for enterprise IAM integration
+    \item No multi-tenant isolation model
+    \item No compliance-grade audit trail
+    \item No credential management beyond basic API keys
+    \item No blast radius containment across tenant boundaries
+\end{itemize}
+
+\subsection{Requirements for Scale}
+\label{subsec:scale-requirements}
+
+A trust framework suitable for enterprise scale must address:
+
+\begin{enumerate}
+    \item \textbf{Federated identity:} Integrate with existing IAM (Azure AD, Okta, etc.)
+    \item \textbf{Hierarchical delegation:} Org $\rightarrow$ Team $\rightarrow$ Project $\rightarrow$ Agent permission chains
+    \item \textbf{Tenant isolation:} Hard boundaries between organizational units
+    \item \textbf{Policy-as-code:} Auditable, testable, version-controlled policies
+    \item \textbf{Pluggable audit:} Integration with existing SIEM/compliance tools
+    \item \textbf{Credential federation:} Leverage existing PAM solutions
+\end{enumerate}
+
+The next chapter proposes a framework that addresses these requirements.
+
+\section{The Economics of Trust}
+\label{sec:economics-trust}
+
+\subsection{Trust Investment Costs}
+\label{subsec:trust-costs}
+
+Building trust requires investment:
+
+\begin{table}[htbp]
+\centering
+\caption{Trust Investment Components}
+\label{tab:trust-investment}
+\begin{tabular}{ll}
+\toprule
+\textbf{Component} & \textbf{Investment Required} \\
+\midrule
+Observability & Logging infrastructure, monitoring tools, analysis capabilities \\
+Reversibility & State management, backup systems, rollback automation \\
+Blast Radius & Access control systems, network segmentation, policy engines \\
+Progressive Trust & Tracking systems, promotion logic, audit capabilities \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Trust ROI}
+\label{subsec:trust-roi}
+
+The return on trust investment comes from:
+\begin{itemize}
+    \item \textbf{Higher autonomy:} More work delegated to agents
+    \item \textbf{Faster adoption:} Teams comfortable using agents sooner
+    \item \textbf{Reduced incidents:} Safeguards prevent costly failures
+    \item \textbf{Compliance satisfaction:} Audit requirements met
+\end{itemize}
+
+\subsection{The Cost of Mistrust}
+\label{subsec:cost-mistrust}
+
+Organizations that under-invest in trust mechanisms face:
+\begin{itemize}
+    \item Agents limited to trivial tasks (reduced value)
+    \item Lengthy approval processes (reduced velocity)
+    \item Shadow agent usage (compliance risk)
+    \item Incidents that set back adoption organization-wide
+\end{itemize}
+
+\section{Summary}
+\label{sec:governance-summary}
+
+The trust problem in agentic systems stems from the fundamental shift from deterministic to probabilistic automation. Organizations cannot simply ``turn on'' agents---they must build trust through:
+
+\begin{enumerate}
+    \item \textbf{Understanding the tradeoffs} via the Trust Equation
+    \item \textbf{Investing in trust mechanisms} (observability, reversibility, blast radius control)
+    \item \textbf{Implementing progressive autonomy} (earned trust over time)
+    \item \textbf{Applying Zero Trust principles} (never trust by default)
+    \item \textbf{Designing for micro-inflection points} (trust builds incrementally)
+\end{enumerate}
+
+The next chapter examines orchestration paradigms and how different approaches to agent coordination affect trust properties.

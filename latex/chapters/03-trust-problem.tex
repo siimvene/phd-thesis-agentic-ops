@@ -1,0 +1,105 @@
+\chapter{The Trust Problem}
+\label{ch:trust-problem}
+
+% Working draft - S. Vene, 2026-02-08
+
+\section{Introduction: Why Trust Matters}
+\label{sec:trust-matters}
+
+The adoption of AI agents in enterprise environments is fundamentally constrained by trust. Unlike traditional automation, which executes deterministic rules predictably, AI agents exhibit autonomous decision-making that introduces uncertainty. Organizations face a dilemma:
+
+\begin{itemize}
+    \item \textbf{Without trust:} Agents are limited to trivial tasks, losing their value proposition
+    \item \textbf{With misplaced trust:} Agents can cause significant damage through unexpected behavior
+    \item \textbf{With calibrated trust:} Agents can be deployed effectively with appropriate safeguards
+\end{itemize}
+
+This chapter examines the trust problem in depth, proposing a theoretical framework for reasoning about trust in agentic systems.
+
+\section{The Deterministic-Probabilistic Shift}
+\label{sec:deterministic-probabilistic}
+
+\subsection{Traditional Automation: Deterministic Systems}
+\label{subsec:deterministic-systems}
+
+Traditional CI/CD pipelines and infrastructure automation operate on deterministic principles:
+
+\begin{center}
+Input $\rightarrow$ Fixed Rules $\rightarrow$ Output
+\end{center}
+
+Given the same input and configuration, the system produces the same output. This determinism enables:
+\begin{itemize}
+    \item \textbf{Predictability:} Teams know what will happen
+    \item \textbf{Testability:} Behavior can be verified before deployment
+    \item \textbf{Debugging:} Failures can be traced to specific inputs/rules
+    \item \textbf{Compliance:} Auditors can verify behavior through rule inspection
+\end{itemize}
+
+\subsection{Agentic Systems: Probabilistic Behavior}
+\label{subsec:probabilistic-behavior}
+
+AI agents fundamentally break this model:
+
+\begin{center}
+\begin{tabular}{c}
+Input $\rightarrow$ LLM Reasoning $\rightarrow$ Probabilistic Output \\
+$\uparrow$ \\
+Context, Temperature, Model State
+\end{tabular}
+\end{center}
+
+The same input can produce different outputs due to:
+\begin{itemize}
+    \item Stochastic sampling in LLM inference
+    \item Context window variations
+    \item Model updates and drift
+    \item Emergent reasoning patterns
+\end{itemize}
+
+This shift from deterministic to probabilistic has profound implications for trust:
+
+\begin{table}[htbp]
+\centering
+\caption{Deterministic vs Probabilistic Systems}
+\label{tab:deterministic-probabilistic}
+\begin{tabular}{lll}
+\toprule
+\textbf{Property} & \textbf{Deterministic} & \textbf{Probabilistic} \\
+\midrule
+Same input, same output & Yes & Not guaranteed \\
+Behavior fully testable & Yes & Only probabilistically \\
+Failure root cause & Clear & Often unclear \\
+Compliance verification & Rule inspection & Behavior monitoring \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The Fundamental Trust Challenge}
+\label{subsec:fundamental-challenge}
+
+This probabilistic nature creates a trust paradox:
+
+\begin{quote}
+\textbf{The more capable an agent becomes, the less predictable its behavior, and the harder it is to trust.}
+\end{quote}
+
+Sophisticated reasoning enables agents to handle novel situations---but also makes their behavior harder to anticipate. This is fundamentally different from traditional systems where capability and predictability are aligned.
+
+\subsection{Empirical Evidence: LLM Reasoning Failures}
+\label{subsec:empirical-evidence}
+
+This theoretical concern has empirical grounding. Riddell et al. \citep{riddell2026} systematically evaluated six LLMs across 48,000 simulated cloud root cause analysis scenarios and developed a taxonomy of 16 distinct reasoning failure modes:
+
+\begin{itemize}
+    \item \textbf{Stalled:} Agent enters reasoning loops, unable to progress
+    \item \textbf{Biased:} Agent anchors on irrelevant or misleading signals
+    \item \textbf{Confused:} Multi-hop reasoning chains break down under complexity
+\end{itemize}
+
+The critical finding: these failures are \textit{structurally unpredictable}. Models that succeed on one scenario fail on structurally similar ones. Intermediate reasoning errors propagate to incorrect final diagnoses. This empirical work validates the theoretical framing: trust cannot be assumed based on capability demonstrations alone.
+
+\section{Summary}
+\label{sec:trust-problem-summary}
+
+The fundamental challenge: agents are probabilistic, not deterministic. Traditional automation trust models assume predictability that agents cannot provide. This necessitates a new framework for reasoning about appropriate trust levels---developed in the next chapter.

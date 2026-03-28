@@ -1,0 +1,394 @@
+\chapter{Agent-Enhanced Observability}
+\label{ch:observability}
+
+% Working draft - S. Vene, 2026-02-08
+
+\section{Introduction}
+\label{sec:observability-intro}
+
+Observability---the ability to understand system state from external outputs---is fundamental to platform engineering. Modern systems generate overwhelming volumes of telemetry: logs, metrics, traces, and events. The challenge is not data collection but sense-making: transforming raw signals into actionable understanding.
+
+This chapter examines how AI agents can enhance observability by synthesizing heterogeneous telemetry, identifying patterns across systems, and providing natural language interfaces to system state.
+
+\section{The Observability Challenge}
+\label{sec:observability-challenge}
+
+\subsection{Signal Overload}
+\label{subsec:signal-overload}
+
+Large-scale systems generate telemetry volumes that exceed human processing capacity:
+
+\begin{table}[htbp]
+\centering
+\caption{Telemetry Volumes by System Scale}
+\label{tab:telemetry-volumes}
+\begin{tabular}{llll}
+\toprule
+\textbf{System Scale} & \textbf{Daily Log Volume} & \textbf{Metrics Cardinality} & \textbf{Alert Volume} \\
+\midrule
+Small (10 services) & 10--50 GB & 10K series & 10--50/day \\
+Medium (100 services) & 500 GB -- 2 TB & 100K series & 100--500/day \\
+Large (1000+ services) & 10+ TB & 1M+ series & 1000+/day \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Traditional approaches---dashboards, alert rules, runbooks---don't scale. Engineers spend more time navigating observability tooling than understanding system behavior.
+
+\subsection{Cross-System Reasoning}
+\label{subsec:cross-system-reasoning}
+
+Incidents rarely involve single services. Root causes propagate through dependencies, manifesting as symptoms across the system. Effective diagnosis requires correlating signals across:
+
+\begin{itemize}
+    \item Multiple services and their dependencies
+    \item Different telemetry types (logs + metrics + traces)
+    \item Time windows (what changed recently?)
+    \item Configuration and deployment state
+\end{itemize}
+
+Current tools excel at single-dimension queries (``show me logs for service X'') but struggle with cross-system reasoning (``why is checkout slow when inventory looks healthy?'').
+
+\subsection{The Knowledge Gap}
+\label{subsec:knowledge-gap}
+
+Effective observability requires context that lives outside telemetry:
+
+\begin{itemize}
+    \item Architecture diagrams and dependency maps
+    \item Recent deployments and configuration changes
+    \item Historical incidents and their resolutions
+    \item Team knowledge and operational runbooks
+\end{itemize}
+
+This context is typically fragmented across wikis, chat history, and engineer memories. Connecting telemetry to context requires human effort that doesn't scale.
+
+\section{Pattern: Contextual Log Synthesis}
+\label{sec:log-synthesis}
+
+\subsection{Problem}
+
+Engineers facing an incident must manually search logs across multiple services, identify relevant entries, and synthesize meaning. This process is time-consuming and depends on knowing what to search for.
+
+\subsection{Solution}
+
+An agent that monitors log streams, identifies anomalies and patterns, and produces natural language summaries with context.
+
+\begin{lstlisting}[caption={Contextual Log Synthesis Architecture}]
+Log Streams (multiple services)
+    |
+    v
++---------------------------------------------+
+| Synthesis Agent                             |
+|                                             |
+| - Pattern recognition across streams        |
+| - Anomaly detection vs. baseline            |
+| - Correlation with known issues             |
+| - Context enrichment (deployments, changes) |
++---------------------------------------------+
+    |
+    v
++---------------------------------------------+
+| "Payment service showing increased error    |
+|  rate (5% -> 12%) starting 14:32.           |
+|  Correlates with inventory-api timeout      |
+|  errors. No recent deployments. Similar     |
+|  pattern seen in INC-2025-0892 (database    |
+|  connection pool exhaustion)."              |
++---------------------------------------------+
+\end{lstlisting}
+
+\subsection{Implementation}
+
+\textbf{Input processing:}
+\begin{itemize}
+    \item Subscribe to log aggregation (Elasticsearch, Loki, CloudWatch)
+    \item Apply semantic chunking (group related log entries)
+    \item Maintain sliding window for pattern detection
+\end{itemize}
+
+\textbf{Synthesis components:}
+\begin{itemize}
+    \item Baseline comparison (current vs. normal patterns)
+    \item Cross-service correlation (what's happening together?)
+    \item Temporal analysis (when did this start?)
+    \item Context enrichment (recent changes, similar incidents)
+\end{itemize}
+
+\textbf{Output:}
+\begin{itemize}
+    \item Natural language summaries with severity assessment
+    \item Links to relevant log entries for verification
+    \item Suggested next steps for investigation
+\end{itemize}
+
+\subsection{Autonomy Level}
+
+L2--L3 (Assisted/Monitored): Agent synthesizes and reports. Human decides action.
+
+\subsection{Risks}
+
+\begin{itemize}
+    \item False pattern detection (seeing correlations that aren't causal)
+    \item Information overload if synthesis is too verbose
+    \item Missing novel patterns not in training data
+    \item Latency in processing high-volume streams
+\end{itemize}
+
+\section{Pattern: Cross-System Correlation}
+\label{sec:cross-system-correlation}
+
+\subsection{Problem}
+
+When Service A shows symptoms, the root cause may be in Service B, C, or the network between them. Engineers must manually trace dependencies and correlate telemetry across systems.
+
+\subsection{Solution}
+
+An agent that maintains a dependency model and automatically correlates anomalies across the service graph.
+
+\subsection{Implementation}
+
+\textbf{Dependency awareness:}
+\begin{itemize}
+    \item Service mesh telemetry (Istio, Linkerd)
+    \item Trace data (distributed tracing)
+    \item Deployment manifests (K8s, Terraform)
+    \item Configuration management data
+\end{itemize}
+
+\textbf{Correlation logic:}
+\begin{itemize}
+    \item When anomaly detected in Service A, query upstream/downstream dependencies
+    \item Compare timing of anomalies across correlated services
+    \item Identify likely propagation path
+    \item Distinguish cause (first anomaly) from effect (subsequent anomalies)
+\end{itemize}
+
+\subsection{Output Example}
+
+\begin{lstlisting}[language=yaml,caption={Correlation Analysis Output}]
+correlation_analysis:
+  trigger: "payment-service error rate spike"
+  timestamp: "2026-02-08T09:15:00Z"
+
+  correlated_anomalies:
+    - service: inventory-api
+      anomaly: "timeout errors"
+      started: "2026-02-08T09:14:30Z"  # Started BEFORE trigger
+      confidence: high
+
+    - service: shipping-service
+      anomaly: "increased latency"
+      started: "2026-02-08T09:15:15Z"  # Started AFTER trigger
+      confidence: medium
+
+  likely_root_cause: inventory-api
+  reasoning: |
+    Inventory-api timeout errors began 30 seconds before
+    payment-service errors. Payment-service depends on
+    inventory-api for stock checks. Shipping-service
+    latency is downstream effect.
+
+  recommended_investigation: inventory-api
+\end{lstlisting}
+
+\subsection{Autonomy Level}
+
+L2 (Assisted): Agent correlates and reports. Human investigates.
+
+\section{Pattern: Natural Language System Queries}
+\label{sec:nl-queries}
+
+\subsection{Problem}
+
+Querying observability systems requires knowledge of query languages (PromQL, LogQL, SQL) and system-specific schemas. This creates a barrier for engineers unfamiliar with specific tools or data models.
+
+\subsection{Solution}
+
+A conversational interface that translates natural language questions into observability queries and explains results.
+
+\subsection{Examples}
+
+\textbf{Example 1:}
+\begin{quote}
+\textbf{User:} ``Why is checkout slow today?''
+
+\textbf{Agent:} Running queries...
+\begin{itemize}
+    \item Latency p99 for checkout-service: 2.3s (normally 400ms)
+    \item Trace analysis shows 80\% of time in inventory-check step
+    \item Inventory-service database queries taking 1.8s (normally 50ms)
+    \item Database CPU at 94\%, connection pool exhausted
+\end{itemize}
+
+\textbf{Summary:} Checkout is slow because inventory database is overloaded. Database CPU is maxed and connections are exhausted. Immediate action: scale database or reduce query load.
+\end{quote}
+
+\textbf{Example 2:}
+\begin{quote}
+\textbf{User:} ``What changed in the last hour?''
+
+\textbf{Agent:} Changes detected:
+\begin{itemize}
+    \item 09:15: Deployment payment-service v2.3.1 $\rightarrow$ v2.3.2
+    \item 09:22: Config change: inventory-service cache TTL 60s $\rightarrow$ 300s
+    \item 09:30: Scaling event: api-gateway replicas 3 $\rightarrow$ 5
+    \item 09:45: Certificate rotation for *.internal.example.com
+\end{itemize}
+
+No infrastructure changes. No database migrations.
+\end{quote}
+
+\subsection{Implementation Guidance}
+
+\begin{itemize}
+    \item Query translation layer (natural language $\rightarrow$ PromQL/LogQL/SQL)
+    \item Result interpretation layer (raw data $\rightarrow$ natural language explanation)
+    \item Context awareness (time ranges, service names, common questions)
+    \item Clarification handling (``which payment service---prod or staging?'')
+\end{itemize}
+
+\subsection{Risks}
+
+\begin{itemize}
+    \item Query translation errors (wrong interpretation)
+    \item Incomplete results (missing relevant data sources)
+    \item Overconfidence in explanations (correlation $\neq$ causation)
+\end{itemize}
+
+\section{Pattern: Provenance-Backed Agent State}
+\label{sec:provenance-state}
+
+\subsection{Problem}
+
+When multiple agents operate on shared state, tracing causation becomes impossible. Current systems store snapshots---the state \textit{now}---but not how they got there. When an agent produces unexpected results, operators cannot determine: which agent changed what, when, or why. This gap makes post-incident analysis unreliable and prevents systems from learning from failures.
+
+\subsection{Solution}
+
+A provenance engine that intercepts every mutation to shared state and records changes at triple-level granularity, maintaining full causal history.
+
+\begin{lstlisting}[caption={Provenance Engine Architecture}]
+Agent Actions (multiple agents)
+    |
+    v
++---------------------------------------------+
+| Provenance Engine                           |
+|                                             |
+| - Intercepts SPARQL/Update queries          |
+| - Captures: who, what, when, why, triggered-by |
+| - Delta-based storage (diffs, not full copies) |
+| - Stores in separate provenance graph       |
++---------------------------------------------+
+    |
+    v
++---------------------------------------------+
+| Queryable Provenance Graph                  |
+|                                             |
+| Query: "What changed between 14:00 and 14:30?" |
+| Query: "Which agent modified the config service?" |
+| Query: "Restore state to 2026-03-20 09:15:00" |
++---------------------------------------------+
+\end{lstlisting}
+
+\subsection{Implementation (Dibowski, 2024)}
+
+Bosch Research's approach uses:
+
+\begin{itemize}
+    \item \textbf{PROV-O ontology extended with RDF-star} (PROV-STAR) to represent changes at triple level
+    \item \textbf{Query transformation}---SPARQL-star queries against a separate provenance graph
+    \item \textbf{Delta-based storage}---stores diffs rather than full copies; scales to millions of triples
+\end{itemize}
+
+Key capability: any past state can be restored with a single query.
+
+\subsection{Trust Framework Integration}
+
+This pattern directly enables the Trust Equation's numerator factors:
+
+\begin{table}[htbp]
+\centering
+\caption{Provenance Pattern Trust Contributions}
+\label{tab:provenance-trust}
+\begin{tabular}{ll}
+\toprule
+\textbf{Factor} & \textbf{Contribution} \\
+\midrule
+Observability & Complete audit trail---every mutation captured with causal context \\
+Reversibility & Any historical state queryable and restorable \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+When both factors are maximized, the autonomy denominator can increase while maintaining appropriate trust levels. An agent operating on provenance-backed state is auditable by definition.
+
+\subsection{Multi-Agent Implications}
+
+For systems where multiple specialized agents coordinate on shared state:
+
+\begin{enumerate}
+    \item \textbf{Causal reconstruction}---when failures occur, trace which agent action triggered which downstream effect
+    \item \textbf{Blame attribution}---not for punishment, but for targeted remediation
+    \item \textbf{Cross-agent learning}---patterns of failure become visible across the agent population
+    \item \textbf{Trust calibration}---agents with clean provenance histories earn higher autonomy
+\end{enumerate}
+
+\subsection{Autonomy Level}
+
+L3--L5 (Monitored to Trusted): Enables high-autonomy operation because failures are recoverable and attributable.
+
+\subsection{Risks}
+
+\begin{itemize}
+    \item Storage overhead for high-mutation workloads
+    \item Query performance on large provenance graphs
+    \item Semantic drift if provenance schema diverges from operational schema
+\end{itemize}
+
+\section{Anti-Patterns and Failure Modes}
+\label{sec:observability-antipatterns}
+
+\subsection{Anti-Pattern: The Oracle Trap}
+
+Treating the observability agent as an oracle that has definitive answers. Agent outputs are hypotheses based on available data, not ground truth.
+
+\textbf{Mitigation:} Always present findings as hypotheses with confidence levels. Include links to raw data for verification.
+
+\subsection{Anti-Pattern: Alert Fatigue Transfer}
+
+Moving alert fatigue from dashboards to agent summaries. If the agent produces too many low-value notifications, engineers will ignore it.
+
+\textbf{Mitigation:} Severity calibration, suppression for known issues, aggregation of related alerts.
+
+\subsection{Anti-Pattern: Context Staleness}
+
+Agent reasoning based on outdated dependency maps, old architecture diagrams, or stale incident history.
+
+\textbf{Mitigation:} Automated context refresh, staleness indicators, graceful degradation when context is unavailable.
+
+\section{Summary}
+\label{sec:observability-summary}
+
+Agent-enhanced observability addresses the core challenge of modern systems: too much data, too little understanding. Key patterns:
+
+\begin{table}[htbp]
+\centering
+\caption{Observability Pattern Summary}
+\label{tab:observability-summary}
+\begin{tabular}{lll}
+\toprule
+\textbf{Pattern} & \textbf{Problem Solved} & \textbf{Autonomy Level} \\
+\midrule
+Contextual Log Synthesis & Signal overload & L2--L3 \\
+Cross-System Correlation & Dependency reasoning & L2 \\
+Natural Language Queries & Query language barrier & L2 \\
+Provenance-Backed Agent State & Multi-agent causation & L3--L5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+These patterns transform agents from query assistants into sense-making partners. The provenance pattern is particularly significant: it provides the architectural foundation for both Observability and Reversibility in the Trust Framework (Chapter~\ref{ch:trust-framework}), enabling higher autonomy levels while maintaining auditability.
+
+The next chapter examines how this understanding feeds into incident triage.
+
+\textit{This chapter addresses RQ1: How can agentic systems enhance observability by transforming raw telemetry into actionable operational understanding?}

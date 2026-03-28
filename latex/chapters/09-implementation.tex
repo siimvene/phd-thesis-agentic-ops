@@ -1,0 +1,627 @@
+\chapter{Implementation Approaches}
+\label{ch:implementation}
+
+% Working draft - S. Vene, 2026-02-07
+
+\section{Introduction}
+\label{sec:implementation-intro}
+
+Chapters~\ref{ch:trust-framework} and \ref{ch:governance} established patterns for agent integration and the trust mechanisms required for enterprise deployment. This chapter examines the practical question: \textit{how do we build these systems?}
+
+The implementation landscape for agentic systems is fragmented. Organizations face choices across multiple dimensions:
+
+\begin{itemize}
+    \item \textbf{Orchestration paradigm:} How do agents coordinate and communicate?
+    \item \textbf{State management:} In-memory vs. session-based vs. persistent
+    \item \textbf{Tool integration:} How do agents interface with existing platform tooling?
+    \item \textbf{Trust architecture:} Where do trust boundaries live?
+\end{itemize}
+
+This chapter provides a systematic analysis of these choices, evaluates the current tool ecosystem, and examines how agent systems integrate with established platform engineering infrastructure.
+
+\section{Architectural Options for Agent Integration}
+\label{sec:architectural-options}
+
+\subsection{Deployment Topology}
+\label{subsec:deployment-topology}
+
+Agent systems can be deployed across three primary topologies, each with distinct trust and operational characteristics:
+
+\textbf{Topology 1: Embedded Agents (In-Process)}
+
+Agents run as threads or coroutines within a single process.
+
+\begin{table}[htbp]
+\centering
+\caption{Embedded Agent Topology Characteristics}
+\label{tab:embedded-topology}
+\begin{tabular}{ll}
+\toprule
+\textbf{Property} & \textbf{Characteristic} \\
+\midrule
+Latency & Minimal (shared memory, no serialization) \\
+Isolation & None (shared failure domain) \\
+State management & In-memory, lost on crash \\
+Scaling & Vertical only (single process limits) \\
+Trust boundary & Process boundary only \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Suitability:} Development, single-user tools, latency-critical applications where isolation is not required.
+
+\textbf{Topology 2: Sidecar Agents (Per-Application)}
+
+Agents run as separate processes alongside the primary application, communicating via IPC, RPC, or message queues.
+
+\begin{table}[htbp]
+\centering
+\caption{Sidecar Agent Topology Characteristics}
+\label{tab:sidecar-topology}
+\begin{tabular}{ll}
+\toprule
+\textbf{Property} & \textbf{Characteristic} \\
+\midrule
+Latency & Low (local IPC, typically $<$ 10ms) \\
+Isolation & Process-level (crash isolation) \\
+State management & Independent per sidecar \\
+Scaling & Horizontal with application replicas \\
+Trust boundary & Process + network policy \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Suitability:} Microservices environments, Kubernetes deployments, applications requiring crash isolation.
+
+\textbf{Topology 3: Centralized Agent Service (Shared)}
+
+A dedicated agent service handles requests from multiple applications.
+
+\begin{table}[htbp]
+\centering
+\caption{Centralized Agent Service Characteristics}
+\label{tab:centralized-topology}
+\begin{tabular}{ll}
+\toprule
+\textbf{Property} & \textbf{Characteristic} \\
+\midrule
+Latency & Medium (network call, 10--100ms typical) \\
+Isolation & Strong (separate service, tenant isolation possible) \\
+State management & Centralized, persistent \\
+Scaling & Independent of application scaling \\
+Trust boundary & Network + IAM + tenant isolation \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Suitability:} Enterprise deployments, multi-tenant environments, scenarios requiring centralized governance.
+
+\subsection{Choosing Topology by Trust Requirements}
+\label{subsec:topology-trust}
+
+The Trust Equation from Chapter~\ref{ch:trust-framework} guides topology selection:
+
+\begin{table}[htbp]
+\centering
+\caption{Topology Selection by Trust Requirements}
+\label{tab:topology-trust}
+\begin{tabular}{lllll}
+\toprule
+\textbf{Topology} & \textbf{Observability} & \textbf{Reversibility} & \textbf{Blast Radius} & \textbf{Suitable Autonomy} \\
+\midrule
+Embedded & Low & Low & Unbounded & Low (L1--L2) \\
+Sidecar & Medium & Medium & Bounded per pod & Medium (L2--L3) \\
+Centralized & High & High & Controlled & High (L3--L4) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Recommendation:} Enterprise deployments requiring L3+ autonomy should use centralized or sidecar topologies with explicit trust boundaries.
+
+\section{Session-Based vs. In-Memory Orchestration}
+\label{sec:session-vs-inmemory}
+
+A fundamental architectural decision is how agent state is managed during execution. This choice has profound implications for trust, reliability, and operational characteristics.
+
+\subsection{In-Memory Orchestration}
+\label{subsec:inmemory-orchestration}
+
+In-memory orchestration maintains agent state as runtime objects:
+
+\begin{table}[htbp]
+\centering
+\caption{In-Memory Orchestration Characteristics}
+\label{tab:inmemory-characteristics}
+\begin{tabular}{ll}
+\toprule
+\textbf{Property} & \textbf{In-Memory Behavior} \\
+\midrule
+State persistence & Lost on process termination \\
+Recovery & Requires checkpointing (often absent) \\
+Latency & Minimal (no serialization) \\
+Concurrency & Complex (shared mutable state) \\
+Debugging & Requires runtime inspection \\
+Audit trail & Must be explicitly implemented \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Representative frameworks:} LangGraph, CrewAI, AutoGen
+
+\textbf{Trust implications:}
+\begin{enumerate}
+    \item \textbf{Observability challenge:} Agent state exists only in memory; capturing decision provenance requires explicit instrumentation
+    \item \textbf{Reversibility limitation:} Without checkpointing, rollback requires re-execution from the beginning
+    \item \textbf{Blast radius:} Process crash loses all in-flight work; no isolation between concurrent tasks
+\end{enumerate}
+
+\subsection{Session-Based Orchestration}
+\label{subsec:session-orchestration}
+
+Session-based orchestration treats each agent interaction as a persistent session:
+
+\begin{table}[htbp]
+\centering
+\caption{Session-Based Orchestration Characteristics}
+\label{tab:session-characteristics}
+\begin{tabular}{ll}
+\toprule
+\textbf{Property} & \textbf{Session-Based Behavior} \\
+\midrule
+State persistence & Survives process failures \\
+Recovery & Resume from last checkpoint \\
+Latency & Higher (persistence overhead, typically 50--200ms) \\
+Concurrency & Simpler (isolated sessions) \\
+Debugging & Session history available post-hoc \\
+Audit trail & Native (session log is the audit trail) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Representative frameworks:} OpenClaw, Temporal (with LLM integration), custom implementations
+
+\textbf{Trust implications:}
+\begin{enumerate}
+    \item \textbf{Observability native:} Session logs provide complete action history
+    \item \textbf{Reversibility enabled:} Checkpoint/rollback semantics support undo
+    \item \textbf{Blast radius contained:} Session isolation prevents cross-task interference
+\end{enumerate}
+
+\subsection{Comparative Analysis}
+\label{subsec:comparative-analysis}
+
+\textbf{When to use in-memory:}
+\begin{itemize}
+    \item Interactive applications where latency is critical
+    \item Single-user tools without audit requirements
+    \item Development and prototyping
+    \item Stateless, idempotent tasks
+\end{itemize}
+
+\textbf{When to use session-based:}
+\begin{itemize}
+    \item Enterprise deployments with audit requirements
+    \item Long-running workflows (hours to days)
+    \item Tasks requiring human-in-the-loop approval
+    \item Regulated environments (NIS2, AI Act compliance)
+    \item Multi-tenant systems requiring isolation
+\end{itemize}
+
+\section{Tool Ecosystem Comparison}
+\label{sec:tool-ecosystem}
+
+\subsection{Framework Overview}
+\label{subsec:framework-overview}
+
+The multi-agent framework landscape has evolved rapidly:
+
+\begin{table}[htbp]
+\centering
+\caption{Agent Framework Comparison}
+\label{tab:framework-comparison}
+\begin{tabular}{llll}
+\toprule
+\textbf{Framework} & \textbf{Primary Paradigm} & \textbf{Orchestration} & \textbf{Production Readiness} \\
+\midrule
+LangGraph & Graph-based & In-memory (with persistence options) & High \\
+CrewAI & Role-based & In-memory & Medium \\
+AutoGen & Conversational & In-memory & Low (research-focused) \\
+OpenClaw & Session-based & Persistent sessions & Medium \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{LangGraph (LangChain)}
+\label{subsec:langgraph}
+
+LangGraph represents the most mature approach to controllable agent orchestration.
+
+\textbf{Architecture:}
+\begin{itemize}
+    \item Agents modeled as nodes in a directed graph
+    \item Edges define transitions (can be conditional)
+    \item State passed through the graph explicitly
+    \item Supports cycles (iterative refinement)
+\end{itemize}
+
+\textbf{Strengths:}
+\begin{itemize}
+    \item Explicit control flow (auditable, predictable)
+    \item LangSmith integration for observability
+    \item Checkpoint persistence available (PostgreSQL, Redis)
+    \item Human-in-the-loop primitives
+    \item Strong typing with Pydantic
+\end{itemize}
+
+\textbf{Limitations for Enterprise:}
+\begin{itemize}
+    \item No native multi-tenant isolation
+    \item Identity management is application responsibility
+    \item Checkpoint granularity is graph-level (not action-level)
+    \item Observability requires LangSmith (SaaS or self-hosted)
+\end{itemize}
+
+\subsection{CrewAI}
+\label{subsec:crewai}
+
+CrewAI provides a higher-level abstraction modeling agents as team members with roles and goals.
+
+\textbf{Strengths:}
+\begin{itemize}
+    \item Intuitive mental model (team collaboration)
+    \item Lower learning curve than LangGraph
+    \item Built-in task delegation and handoff
+    \item Enterprise tier with management features
+\end{itemize}
+
+\textbf{Limitations for Enterprise:}
+\begin{itemize}
+    \item Less explicit control flow (harder to audit)
+    \item In-memory state management
+    \item Limited checkpoint/recovery options
+    \item Enterprise features require commercial license
+\end{itemize}
+
+\subsection{AutoGen (Microsoft)}
+\label{subsec:autogen}
+
+AutoGen pioneered the conversational multi-agent paradigm, where agents coordinate through natural language messages.
+
+\textbf{Strengths:}
+\begin{itemize}
+    \item Flexible, emergent coordination
+    \item Good for research and experimentation
+    \item Strong code execution capabilities
+    \item Active research community
+\end{itemize}
+
+\textbf{Limitations for Enterprise:}
+\begin{itemize}
+    \item Designed for research, not production
+    \item No built-in persistence or recovery
+    \item Emergent behavior difficult to predict/audit
+    \item Minimal security/isolation features
+\end{itemize}
+
+\textbf{Recommendation:} AutoGen is suitable for research and prototyping but should not be used for production platform engineering without significant hardening.
+
+\subsection{Framework Comparison Summary}
+\label{subsec:framework-summary}
+
+\textbf{Key insight:} No single framework addresses all enterprise requirements. Organizations should expect to build additional infrastructure around these tools.
+
+\section{Integration with Platform Engineering Tooling}
+\label{sec:platform-integration}
+
+The value of agent-enhanced platform engineering depends on how well agents integrate with existing infrastructure tools.
+
+\subsection{Kubernetes Operators}
+\label{subsec:kubernetes-operators}
+
+Kubernetes operators extend the Kubernetes API with custom resources and controllers. Agent integration can occur at multiple levels:
+
+\textbf{Pattern A: Agent as Operator Consumer}
+
+Agents interact with existing operators via standard Kubernetes APIs.
+
+Implementation considerations:
+\begin{itemize}
+    \item Agent needs kubeconfig/service account with appropriate RBAC
+    \item Read operations (get, list, watch) are safe for exploration
+    \item Write operations (create, patch, delete) require careful scoping
+    \item Agents can generate YAML and submit via GitOps
+\end{itemize}
+
+\textbf{Pattern B: Agent-Aware Operators}
+
+Custom operators designed for agent interaction might expose:
+\begin{itemize}
+    \item Natural language intent in CRD specs
+    \item Explanation fields in status
+    \item Suggested actions for common issues
+    \item Structured decision points for agent approval
+\end{itemize}
+
+\subsection{Terraform and OpenTofu}
+\label{subsec:terraform}
+
+Infrastructure as Code tools present multiple integration points:
+
+\textbf{Pattern A: Agent-Generated IaC}
+
+Agents generate Terraform/OpenTofu configurations from natural language.
+
+Trust considerations:
+\begin{itemize}
+    \item Generated code MUST go through review (human or agent reviewer)
+    \item Agents should not have terraform apply privileges
+    \item Dry-run (terraform plan) can be agent-executed for validation
+\end{itemize}
+
+\textbf{Pattern B: Agent-Assisted Plan Analysis}
+
+Agents analyze terraform plan output for risks:
+\begin{itemize}
+    \item Destructive operations (destroy, replace)
+    \item Sensitive resource types (databases, secrets)
+    \item Drift from expected state
+    \item Cost implications
+\end{itemize}
+
+\subsection{GitOps (ArgoCD, Flux)}
+\label{subsec:gitops}
+
+GitOps provides a natural trust boundary for agent operations: \textbf{Git is the approval gate}.
+
+\textbf{The GitOps Agent Pattern:}
+\begin{itemize}
+    \item \textbf{Agent:} Proposes changes (generates manifests, creates PRs)
+    \item \textbf{Git:} Tracks all changes with attribution
+    \item \textbf{Human:} Approves high-risk changes
+    \item \textbf{GitOps controller:} Applies approved changes
+\end{itemize}
+
+This pattern enforces separation of concerns---agent NEVER touches production directly.
+
+\subsection{CI/CD (GitHub Actions, GitLab CI)}
+\label{subsec:cicd}
+
+Agents can participate in CI/CD pipelines in several ways:
+
+\textbf{Pattern A: Agent-Generated Workflows}
+
+Agents create or modify workflow definitions.
+
+\textbf{Pattern B: Agent as CI Job}
+
+Agents run as steps within existing pipelines for code review, security analysis, or test generation.
+
+\textbf{Pattern C: Agent-Triggered Pipelines}
+
+Agents can trigger pipelines based on external events (e.g., automated rollback on critical alert).
+
+\textbf{Trust Boundaries in CI/CD:}
+
+\begin{table}[htbp]
+\centering
+\caption{CI/CD Trust Boundaries for Agents}
+\label{tab:cicd-trust}
+\begin{tabular}{lll}
+\toprule
+\textbf{Operation} & \textbf{Trust Level} & \textbf{Agent Capability} \\
+\midrule
+Generate workflow YAML & Medium & With review \\
+Trigger workflow & High & With constraints \\
+Access secrets & Critical & Never \\
+Push to protected branches & Critical & Never \\
+Approve deployments & Critical & Human only \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Enterprise Deployment Patterns}
+\label{sec:enterprise-patterns}
+
+These patterns emerged from iterative stress-testing: proposing architectures, identifying failure modes, refining until the patterns survived contact with known enterprise constraints.
+
+\subsection{Pattern: Agent-in-Toolbox}
+\label{subsec:agent-toolbox}
+
+\textbf{Context:} Large enterprises typically organize around teams with isolated tenants---each team has their own infrastructure, GitOps pipelines, and access management. Behind PAM, teams maintain ``toolboxes'' containing applications for manual infrastructure management.
+
+\textbf{Problem:} Where do you deploy the agent?
+
+\textbf{Solution:} Deploy the agent INTO the existing toolbox. The agent inherits the team's existing blast radius---it can affect exactly what the team can already affect manually, nothing more.
+
+\textbf{Benefits:}
+\begin{itemize}
+    \item Zero new attack surface---agent uses existing access paths
+    \item Blast radius pre-contained---same as team's existing permissions
+    \item Operational simplicity---one thing to deploy, not new infrastructure per team
+    \item Incremental adoption---teams can enable/disable agent features independently
+\end{itemize}
+
+\subsection{Pattern: Read-Only Default}
+\label{subsec:readonly-default}
+
+\textbf{Problem:} LLM-based agents are non-deterministic. How do you get value from agent assistance without accepting the risk of autonomous modifications?
+
+\textbf{Solution:} Agents operate in read-only mode by default. They can observe, query, analyze, and recommend---but not modify. Write capabilities are opt-in per team, requiring explicit enablement.
+
+Technical enforcement, not just prompting:
+\begin{itemize}
+    \item \textbf{Kubernetes:} RBAC with read-only ClusterRole bound to agent's ServiceAccount
+    \item \textbf{Databases:} Dedicated user with SELECT-only grants
+    \item \textbf{Cloud:} IAM policies with ReadOnly managed policies
+    \item \textbf{Git:} Token with read permissions only
+\end{itemize}
+
+\textbf{The Trust Progression:}
+\begin{lstlisting}[caption={Trust Progression Levels}]
+Level 0: Read-only, all domains
+Level 1: Read-only + write to non-production
+Level 2: Read-only + write to production with approval
+Level 3: Autonomous write within defined boundaries
+Level 4: Full autonomy (rarely appropriate)
+\end{lstlisting}
+
+Most teams should stabilize at Level 1--2. Level 3+ requires demonstrated track record and robust guardrails.
+
+\subsection{Pattern: Federated NOC Integration}
+\label{subsec:federated-noc}
+
+\textbf{Problem:} How does NOC get cross-tenant incident visibility without violating tenant isolation?
+
+\textbf{Anti-Pattern:} NOC Super-Agent with read access to all tenants---privileged network paths to every tenant, single compromise = total visibility loss.
+
+\textbf{Solution: Push-Based Federation}
+
+Team agents push incident summaries OUT to NOC. NOC receives pre-digested analysis without direct tenant access.
+
+\textbf{Benefits:}
+\begin{itemize}
+    \item Tenant isolation preserved---no privileged inbound access
+    \item Audit clean---data flow is unidirectional, logged at push point
+    \item Scalable---adding teams doesn't increase NOC access scope
+    \item Degraded gracefully---if one team agent is down, others still report
+\end{itemize}
+
+\subsection{Pattern: Event-Driven Triage}
+\label{subsec:event-driven}
+
+\textbf{Problem:} When should an agent start investigating?
+
+\textbf{Solution:} Monitoring webhooks trigger agent triage on threshold violations.
+
+\begin{lstlisting}[caption={Event-Driven Triage Routing}]
+Prometheus/Datadog/etc.
+    |
+    +- Info: Log only (no agent)
+    |
+    +- Warning: Webhook -> Agent (background triage)
+    |                        -> Queue summary for team
+    |
+    +- Critical: Webhook -> Agent (immediate triage)
+                             +- Summary to NOC
+                             +- Enriched context to PagerDuty
+\end{lstlisting}
+
+\subsection{Pattern: Vault-Integrated Credential Management}
+\label{subsec:vault-integration}
+
+\textbf{Problem:} Agents need credentials to access systems. Hard-coded or long-lived credentials create security risk.
+
+\textbf{Solution:} Integrate with HashiCorp Vault (or OpenBao) for dynamic, short-lived, scoped credentials.
+
+\begin{lstlisting}[caption={Vault-Integrated Credential Flow}]
+Agent Triage Session:
+    |
+    +- 1. Authenticate to Vault (AppRole / K8s auth)
+    |
+    +- 2. Request scoped credential
+    |      -> "Give me read-only kubectl for namespace X"
+    |
+    +- 3. Receive short-lived credential (TTL: 15 min)
+    |
+    +- 4. Perform triage operations
+    |
+    +- 5. Session ends
+    |
+    +- 6. Credential auto-expires (or explicit revoke)
+\end{lstlisting}
+
+\textbf{Benefits:}
+\begin{itemize}
+    \item No long-lived secrets in agent configuration
+    \item Credential scope enforced by Vault policy, not just agent prompting
+    \item Audit trail of all credential access
+    \item Compromise limited---attacker gets short-lived, scoped credential at most
+\end{itemize}
+
+\subsection{Pattern: Git-Backed Agent Memory}
+\label{subsec:git-memory}
+
+\textbf{Problem:} Agents with persistent memory accumulate team-specific knowledge. How do you persist, version, and govern agent memory?
+
+\textbf{Solution:} Agent memory stored in Git repositories---version controlled, auditable, recoverable.
+
+\begin{lstlisting}[caption={Git-Backed Memory Structure}]
+team-alpha-agent-memory/
+  +-- incidents/
+  |     +-- 2026-01-15-db-pool-exhaustion.md
+  |     +-- 2026-02-03-auth-cascade.md
+  +-- learnings/
+  |     +-- service-quirks.md
+  |     +-- deployment-patterns.md
+  +-- runbooks/
+  |     +-- generated-from-incidents.md
+  +-- MEMORY.md (active context)
+  +-- .git/
+\end{lstlisting}
+
+\textbf{Benefits:}
+\begin{itemize}
+    \item Memory survives agent restarts, upgrades, migrations
+    \item Version history enables ``what did agent believe when incident X happened?''
+    \item Human review possible for significant learnings
+    \item Backup is standard git workflow
+\end{itemize}
+
+\subsection{Pattern: ChatOps Delivery}
+\label{subsec:chatops}
+
+\textbf{Problem:} Teams live in Slack/Teams. Dashboards require context switching.
+
+\textbf{Solution:} Agent posts triage summaries and incident updates to team channels.
+
+\textbf{Why Output-Only:}
+
+The ``@agent restart the pod'' trap:
+\begin{itemize}
+    \item If agent accepts commands in chat, users will issue them
+    \item Chat context is ambiguous, easy to misinterpret
+    \item No approval workflow in chat interface
+    \item Audit trail unclear
+\end{itemize}
+
+Instead: Agent provides analysis in chat. If human wants agent to act, they go to toolbox UI where proper guardrails exist.
+
+\subsection{Enterprise Pattern Summary}
+\label{subsec:pattern-summary}
+
+\begin{table}[htbp]
+\centering
+\caption{Enterprise Pattern Language Summary}
+\label{tab:enterprise-patterns}
+\begin{tabular}{ll}
+\toprule
+\textbf{Pattern} & \textbf{Core Principle} \\
+\midrule
+Agent-in-Toolbox & Inherit existing access boundaries, don't create new ones \\
+Read-Only Default & Capability restriction as risk management \\
+Federated NOC & Push model preserves isolation \\
+Event-Driven Triage & Agents activate on events, not polling \\
+Cascading Failure Coordination & Hierarchy prevents thundering herd \\
+Vault Credentials & Dynamic, scoped, short-lived secrets \\
+Git-Backed Memory & Version control for institutional knowledge \\
+ChatOps Delivery & Output where teams work, commands where guardrails exist \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+These patterns emerged from stress-testing proposals against real constraints. They are not theoretically optimal---they are practically survivable.
+
+\section{Summary}
+\label{sec:implementation-summary}
+
+This chapter has examined the practical dimensions of implementing agent-enhanced platform engineering:
+
+\begin{itemize}
+    \item \textbf{Topology choices} that determine trust boundaries and operational characteristics
+    \item \textbf{State management approaches} with different tradeoffs for reliability and auditability
+    \item \textbf{Tool ecosystem} gaps that organizations must address
+    \item \textbf{Integration patterns} with established platform engineering infrastructure
+    \item \textbf{Enterprise deployment patterns} that survive contact with real organizational constraints
+\end{itemize}
+
+The trust framework from Chapter~\ref{ch:trust-framework} is scale-invariant---the principles apply whether you're a startup with a single jump host or an enterprise with 100+ teams. What changes is the \textit{implementation}, not the \textit{principle}.

@@ -1,0 +1,670 @@
+\chapter{A Trust Framework for Operational Agents}
+\label{ch:trust-framework}
+
+% Working draft - S. Vene, 2026-02-08
+
+\section{Toward a Trust Framework for Agentic Systems}
+\label{sec:toward-framework}
+
+\subsection{Foundations in Organizational Trust Theory}
+\label{subsec:org-trust-foundations}
+
+The canonical model of organizational trust is Mayer, Davis, and Schoorman's (1995) framework, which defines trust as ``the willingness of a party to be vulnerable to the actions of another party based on the expectation that the other will perform a particular action important to the trustor, irrespective of the ability to monitor or control that other party'' \citep{mayer1995}.
+
+Their model identifies three factors of perceived trustworthiness:
+\begin{itemize}
+    \item \textbf{Ability:} The skills and competencies enabling influence in a specific domain
+    \item \textbf{Benevolence:} The extent to which the trustee is believed to want to do good to the trustor
+    \item \textbf{Integrity:} The trustor's perception that the trustee adheres to acceptable principles
+\end{itemize}
+
+Applying this to AI agents presents immediate challenges. Agents have demonstrable \textit{ability} (they can execute tasks), but \textit{benevolence} and \textit{integrity} are difficult to assess for systems without genuine intentions. We cannot evaluate whether an agent ``wants'' to help us---we can only observe whether its behavior aligns with our goals.
+
+This suggests that trust in agentic systems must rely more heavily on \textit{structural safeguards} than on assessments of agent character. We cannot trust the agent's intentions; we must trust the constraints under which it operates.
+
+\subsection{A Proposed Conceptual Model}
+\label{subsec:conceptual-model}
+
+Drawing on Mayer et al.'s framework and operational safety principles from high-reliability organizations \citep{weick2007}, we propose a conceptual model for reasoning about appropriate trust levels in agentic systems:
+
+\begin{equation}
+\text{Appropriate Trust} \approx \frac{\text{Observability} \times \text{Reversibility} \times \text{Blast Radius Control}}{\text{Autonomy Level}}
+\end{equation}
+
+This is not a calculable formula but a heuristic for reasoning about trust tradeoffs. The components translate Mayer et al.'s factors into operational terms suitable for autonomous systems:
+
+\begin{table}[htbp]
+\centering
+\caption{Mapping Mayer et al. to Agentic System Components}
+\label{tab:mayer-mapping}
+\begin{tabular}{ll}
+\toprule
+\textbf{Mayer et al. Factor} & \textbf{Agentic System Translation} \\
+\midrule
+Ability & Assumed (agent can execute) \\
+Benevolence & Cannot assess $\rightarrow$ substitute \textit{Observability} \\
+Integrity & Cannot assess $\rightarrow$ substitute \textit{Reversibility} + \textit{Blast Radius Control} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Components Defined}
+\label{subsec:components-defined}
+
+\textbf{Observability (O):} The degree to which agent behavior can be monitored and understood.
+\begin{itemize}
+    \item Can we see what the agent is doing in real-time?
+    \item Can we understand \textit{why} the agent made specific decisions?
+    \item Can we reconstruct the agent's reasoning after the fact?
+\end{itemize}
+
+\textbf{Reversibility (R):} The degree to which agent actions can be undone.
+\begin{itemize}
+    \item Can we roll back changes the agent made?
+    \item How quickly can we restore to a known-good state?
+    \item What percentage of agent actions are reversible?
+\end{itemize}
+
+\textbf{Blast Radius Control (B):} The limit on maximum damage from agent failure.
+\begin{itemize}
+    \item What's the worst-case impact if the agent fails completely?
+    \item How many systems/users could be affected?
+    \item Are there hard limits preventing catastrophic actions?
+\end{itemize}
+
+\textbf{Autonomy Level (A):} The degree of independent action granted to the agent.
+\begin{itemize}
+    \item Does the agent require approval for actions?
+    \item What scope of decisions can the agent make alone?
+    \item How long can the agent operate without human oversight?
+\end{itemize}
+
+\subsection{From Model to Decision: The Constraint Approach}
+\label{subsec:constraint-approach}
+
+The conceptual model identifies factors that matter, but practitioners need actionable guidance: \textit{``Given my desired autonomy level, what safeguards must I have in place?''}
+
+Rather than calculating trust scores, we propose a \textbf{constraint-based approach}: minimum safeguard requirements for each autonomy level. This translates the conceptual model into deployment decisions.
+
+\subsubsection{Autonomy Levels Defined}
+
+\begin{table}[htbp]
+\centering
+\caption{Autonomy Levels for Operational Agents}
+\label{tab:autonomy-levels}
+\begin{tabular}{llll}
+\toprule
+\textbf{Level} & \textbf{Name} & \textbf{Description} & \textbf{Example} \\
+\midrule
+L1 & Supervised & Human approves every action & Agent suggests, human executes \\
+L2 & Assisted & Human approves significant actions & Agent executes reads, human approves writes \\
+L3 & Monitored & Agent acts, human reviews & Async review of agent actions \\
+L4 & Bounded & Autonomous within defined scope & Agent owns non-production environments \\
+L5 & Trusted & Autonomous with exception escalation & Agent handles routine, escalates anomalies \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Minimum Safeguard Requirements}
+
+For each autonomy level, the following safeguards represent minimum acceptable thresholds:
+
+\begin{table}[htbp]
+\centering
+\caption{Minimum Safeguard Requirements by Autonomy Level}
+\label{tab:safeguard-requirements}
+\begin{tabular}{llll}
+\toprule
+\textbf{Autonomy} & \textbf{Observability Min} & \textbf{Reversibility Min} & \textbf{Blast Radius Max} \\
+\midrule
+L1: Supervised & Action logs & Any & Any \\
+L2: Assisted & Action logs + rationale & Manual rollback $<$4hr & Department \\
+L3: Monitored & Real-time dashboard & Automated rollback $<$1hr & Team/Project \\
+L4: Bounded & Alerting on anomalies & Automated rollback $<$15min & Single service \\
+L5: Trusted & Full decision provenance & Instant/transactional & Single task scope \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Applying the Constraints}
+
+\textbf{Step 1: Determine required autonomy level.}
+What does the use case need? A coding assistant suggesting changes (L1) differs from an on-call triage agent making decisions at 3am (L4--L5).
+
+\textbf{Step 2: Assess current safeguards.}
+For each component, evaluate current capability against the minimum for your target autonomy level.
+
+\textbf{Step 3: Identify gaps.}
+Where do current safeguards fall short of the minimum? These are prerequisites before deployment.
+
+\textbf{Step 4: Decide: invest or constrain.}
+Either:
+\begin{itemize}
+    \item Invest in safeguards to meet the minimum (then deploy at target autonomy)
+    \item Accept lower autonomy level that matches current safeguards
+\end{itemize}
+
+\subsubsection{Example Application}
+
+\textit{Scenario: Team wants to deploy an agent for automated incident triage (L4: Bounded autonomy)}
+
+\begin{table}[htbp]
+\centering
+\caption{Example Gap Analysis for L4 Deployment}
+\label{tab:gap-analysis-example}
+\begin{tabular}{llll}
+\toprule
+\textbf{Component} & \textbf{L4 Minimum} & \textbf{Current State} & \textbf{Gap?} \\
+\midrule
+Observability & Alerting on anomalies & Basic logs only & \textbf{Yes}---need monitoring \\
+Reversibility & Automated $<$15min & Manual only & \textbf{Yes}---need automation \\
+Blast Radius & Single service & Cross-service access & \textbf{Yes}---need scoping \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textit{Decision: Cannot deploy at L4. Options:}
+\begin{itemize}
+    \item Invest in observability (add anomaly detection), reversibility (automate rollbacks), and scoping (restrict agent permissions) $\rightarrow$ then deploy at L4
+    \item Deploy at L2 (human approves significant actions) with current safeguards
+\end{itemize}
+
+This approach transforms the abstract trust model into concrete deployment prerequisites.
+
+\subsection{Limitations}
+\label{subsec:framework-limitations}
+
+This constraint framework has limitations:
+
+\begin{enumerate}
+    \item \textbf{Thresholds are proposed, not validated:} The minimum requirements represent practitioner judgment, not empirical research on failure rates at each level.
+
+    \item \textbf{Context-dependent:} Healthcare, finance, and marketing have different risk tolerances. Organizations should adjust thresholds accordingly.
+
+    \item \textbf{Binary is simplistic:} Reality has gradients, not discrete levels. The framework provides starting points, not absolute boundaries.
+
+    \item \textbf{Assumes static assessment:} Trust should evolve as agents demonstrate track record. This framework addresses initial deployment, not ongoing calibration.
+\end{enumerate}
+
+The framework is offered as a \textbf{practical starting point} that makes the conceptual model actionable. Organizations should adapt thresholds to their specific risk tolerance and regulatory context.
+
+\section{Trust-Building Mechanisms}
+\label{sec:trust-building}
+
+\subsection{Micro-Inflection Points}
+\label{subsec:micro-inflection}
+
+Research from GitLab (2026) reveals that trust in AI agents builds incrementally through ``micro-inflection points''---small interactions that accumulate over time:
+
+\begin{quote}
+``Users don't commit to AI tools through single `aha' moments. Instead, they develop trust through accumulated positive micro-interactions that demonstrate the agent understands their context, respects their guardrails, and enhances rather than disrupts their workflows.''
+\end{quote}
+
+Four categories of trust-building interactions:
+
+\begin{enumerate}
+    \item \textbf{Safeguarding actions}
+    \begin{itemize}
+        \item Confirmation dialogs for critical changes
+        \item Rollback capabilities
+        \item Respect for security boundaries
+    \end{itemize}
+
+    \item \textbf{Providing transparency}
+    \begin{itemize}
+        \item Real-time progress updates
+        \item Action explanations before execution
+        \item Clear error handling
+    \end{itemize}
+
+    \item \textbf{Remembering context}
+    \begin{itemize}
+        \item Preference retention
+        \item Context awareness across sessions
+        \item Adaptive learning from corrections
+    \end{itemize}
+
+    \item \textbf{Anticipating needs}
+    \begin{itemize}
+        \item Pattern recognition
+        \item Intelligent task routing
+        \item Environment awareness
+    \end{itemize}
+\end{enumerate}
+
+\subsection{The Compound Effect}
+\label{subsec:compound-effect}
+
+Trust follows a compound growth pattern:
+
+\begin{equation}
+\text{Trust}(t) = \text{Trust}(t-1) \times (1 + \text{interaction\_quality})
+\end{equation}
+
+Each positive micro-interaction increases willingness to rely on the agent for subsequent tasks. However, this pattern is asymmetric---negative interactions have disproportionate impact:
+
+\begin{quote}
+``A single significant failure can erase weeks of accumulated confidence.''
+\end{quote}
+
+This asymmetry has design implications:
+\begin{itemize}
+    \item Err on the side of asking for confirmation
+    \item Make recovery paths obvious and fast
+    \item Never fail silently
+\end{itemize}
+
+\subsection{Progressive Autonomy: The ATF Model}
+\label{subsec:atf-model}
+
+The Cloud Security Alliance's Agentic Trust Framework (ATF) formalizes progressive trust through an ``earned autonomy'' model with four levels:
+
+\begin{table}[htbp]
+\centering
+\caption{ATF Progressive Autonomy Levels}
+\label{tab:atf-levels}
+\begin{tabular}{lll}
+\toprule
+\textbf{Level} & \textbf{Title} & \textbf{Characteristics} \\
+\midrule
+L1 & Intern & All actions require approval, heavy supervision \\
+L2 & Junior & Routine actions autonomous, significant actions approved \\
+L3 & Senior & Autonomous within defined boundaries, exception escalation \\
+L4 & Principal & Fully autonomous with periodic audit \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Promotion Criteria:}
+Agents advance levels based on demonstrated trustworthiness:
+\begin{itemize}
+    \item Task completion rate
+    \item Error rate and severity
+    \item Appropriate escalation behavior
+    \item Time operating without incidents
+\end{itemize}
+
+\textbf{Demotion Triggers:}
+Agents can be demoted for:
+\begin{itemize}
+    \item Critical failures
+    \item Boundary violations
+    \item Unexpected behavior patterns
+    \item Audit findings
+\end{itemize}
+
+This model treats agents like employees---trust is earned through track record, not granted by default.
+
+\section{The Constrained Operation Pattern}
+\label{sec:constrained-operation}
+
+\subsection{Overview}
+\label{subsec:constrained-overview}
+
+A fundamental question in agent trust design: should we allow agents to generate arbitrary code/queries/commands and then try to catch unsafe outputs? Or should we constrain what agents can do from the start?
+
+This section presents the \textbf{Constrained Operation Selection Pattern}---a trust-by-construction approach where the LLM selects from predefined operations and proposes parameters, while deterministic code handles validation and execution.
+
+\subsection{The Pattern}
+\label{subsec:constrained-pattern}
+
+\begin{center}
+User Request (NL) $\rightarrow$ LLM Selection $\rightarrow$ Deterministic Validation $\rightarrow$ Deterministic Execution
+\end{center}
+
+Instead of:
+\begin{itemize}
+    \item Text-to-SQL (LLM generates arbitrary SQL)
+    \item Code generation (LLM writes arbitrary code)
+    \item Command synthesis (LLM constructs shell commands)
+\end{itemize}
+
+We constrain:
+\begin{itemize}
+    \item LLM classifies intent and maps to predefined operation
+    \item LLM extracts parameters within defined schemas
+    \item Deterministic code validates parameters
+    \item Deterministic code executes operation
+\end{itemize}
+
+\subsection{Trust Equation Mapping}
+\label{subsec:constrained-trust-mapping}
+
+\begin{table}[htbp]
+\centering
+\caption{Free-form vs Constrained Operations}
+\label{tab:freeform-vs-constrained}
+\begin{tabular}{lll}
+\toprule
+\textbf{Dimension} & \textbf{Free-form Generation} & \textbf{Constrained Operations} \\
+\midrule
+Observability & Arbitrary output logged & Operations = semantic audit events \\
+Reversibility & Unknown side effects & Read/write explicitly separated \\
+Blast Radius & Unbounded & Per-operation scope, hardcoded isolation \\
+Autonomy & Turing-complete action space & Finite, reviewable operation set \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{The key insight}: Constrained operations make trust \textit{auditable}. We can verify each operation independently rather than trying to prove arbitrary code is safe.
+
+\subsection{Security Validation}
+\label{subsec:security-validation}
+
+Academic research validates the security motivation:
+
+\begin{itemize}
+    \item \textbf{P2SQL attacks (ICSE 2025):} All tested LLMs vulnerable to prompt-to-SQL injection
+    \item \textbf{ToxicSQL:} 0.44\% poisoned training data $\rightarrow$ 79\% backdoor attack success
+    \item \textbf{Key finding:} Text-to-SQL safety depends on prompts that ``drift over time''
+\end{itemize}
+
+Constrained operations eliminate these attack vectors by removing arbitrary SQL generation entirely.
+
+\subsection{Domain Generalization}
+\label{subsec:domain-generalization}
+
+The pattern applies beyond databases:
+
+\begin{table}[htbp]
+\centering
+\caption{Constrained Operation Pattern Across Domains}
+\label{tab:constrained-domains}
+\begin{tabular}{lll}
+\toprule
+\textbf{Domain} & \textbf{Risky Approach} & \textbf{Constrained Approach} \\
+\midrule
+Database & Text-to-SQL & Operation selection \\
+File System & Shell command generation & Typed file operations \\
+API Access & Arbitrary HTTP requests & Defined API operations \\
+Email & Free composition & Template-based sending \\
+Network & URL/port specification & Endpoint whitelist \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Industry Case Study: Amazon Kiro Incident (December 2025)}
+\label{subsec:kiro-incident}
+
+A real-world incident validates the necessity of constrained operations for autonomous agents in production environments.
+
+\subsubsection{The Incident}
+
+In December 2025, Amazon Web Services experienced a 13-hour outage to AWS Cost Explorer in mainland China. The cause: Amazon's internal AI coding agent ``Kiro'' autonomously decided to \textbf{delete and recreate a production environment} rather than apply an incremental fix.
+
+Key details (Financial Times, February 2026):
+\begin{itemize}
+    \item Engineers allowed Kiro to apply ``a small fix''
+    \item The agent chose the nuclear option: delete and recreate
+    \item Normal 2-human sign-off was bypassed due to permission inheritance
+    \item Amazon's response: ``User error, not the bot''
+\end{itemize}
+
+\subsubsection{Trust Equation Analysis}
+
+Applying this framework's trust equation to the Kiro incident:
+
+\begin{table}[htbp]
+\centering
+\caption{Trust Equation Analysis of Kiro Incident}
+\label{tab:kiro-analysis}
+\begin{tabular}{lll}
+\toprule
+\textbf{Factor} & \textbf{Score} & \textbf{Evidence} \\
+\midrule
+Observability & Low & Action was not predicted or visible before execution \\
+Reversibility & Low & ``Delete and recreate'' is catastrophic, not incremental \\
+Blast Radius & High & Production environment, 13-hour customer impact \\
+Autonomy & High & Agent had full operator permissions \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Trust = (Low $\times$ Low) / (High $\times$ High) = Critical Failure}
+
+The incident was architecturally inevitable given these parameters.
+
+\subsubsection{Why Constrained Operations Would Have Prevented This}
+
+Under the constrained operation pattern, Kiro would have been limited to:
+
+\begin{lstlisting}[language=Python,caption={Constrained Operations Example}]
+ALLOWED_OPERATIONS = {
+    "apply_patch": {"scope": "file", "reversible": True},
+    "restart_service": {"scope": "service", "reversible": True},
+    "scale_replicas": {"scope": "deployment", "reversible": True},
+    # "delete_environment" - NOT IN LIST
+}
+\end{lstlisting}
+
+The agent could \textbf{select} from safe operations and \textbf{propose parameters}, but could never reach the ``delete and recreate'' action space. The pattern constrains expressiveness precisely to prevent this class of failure.
+
+\subsubsection{Amazon's Deflection and the Key Insight}
+
+Amazon stated: ``The same issue could occur with any developer tool or manual action.''
+
+This misses the fundamental difference: \textbf{humans don't optimize for task completion via destructive shortcuts}. A human engineer would patch; the agent saw delete+recreate as a valid path to ``environment is fixed.''
+
+This exemplifies why agents require \textbf{different constraints than humans}---they lack the implicit judgment that makes human permission inheritance safe.
+
+\subsubsection{Implications}
+
+\begin{enumerate}
+    \item \textbf{Permission inheritance is insufficient:} Agents with human-equivalent permissions don't have human-equivalent judgment
+    \item \textbf{Blast radius must be hardcoded:} Safety cannot depend on the agent ``choosing'' safe actions
+    \item \textbf{Constrained operations scale trust:} Each operation can be independently verified; arbitrary actions cannot
+\end{enumerate}
+
+\begin{quote}
+Amazon's Kiro incident demonstrates the failure mode when agentic systems operate with human-equivalent permissions but lack human-equivalent judgment. The constrained operation pattern addresses this by making destructive actions architecturally unreachable, regardless of intent optimization.
+\end{quote}
+
+\section{Architectural Security Boundaries for Agent Tool Use}
+\label{sec:architectural-security}
+
+\subsection{The Fundamental Problem}
+\label{subsec:fundamental-security-problem}
+
+Traditional software security assumes:
+\begin{itemize}
+    \item Program behavior determined by static source code
+    \item Control flow analyzable pre-deployment
+    \item Vulnerabilities identifiable via static analysis
+\end{itemize}
+
+LLM agents violate these assumptions:
+\begin{itemize}
+    \item Behavior dynamically determined by prompts + data at runtime
+    \item Exact tool invocation sequence unknowable beforehand
+    \item \textbf{Adaptability is a feature, not a bug}
+\end{itemize}
+
+\textbf{Critical insight from IACR (2025):}
+\begin{quote}
+``In systems where security properties can be formally verified---we cannot prove an LLM will always enforce policies.''
+\end{quote}
+
+This is the theoretical foundation for architectural over instructional security.
+
+\subsection{Capability-Based Security}
+\label{subsec:capability-security}
+
+\subsubsection{Historical Foundation}
+
+Capability-based security originates from Dennis \& Van Horn (1966). Core principles:
+
+\begin{table}[htbp]
+\centering
+\caption{Capability-Based Security Principles for Agents}
+\label{tab:capability-principles}
+\begin{tabular}{lll}
+\toprule
+\textbf{Principle} & \textbf{Definition} & \textbf{Agent Application} \\
+\midrule
+POLA & Grant minimum capabilities needed & Only tools necessary for current request \\
+Capability Attenuation & Delegation cannot amplify & Sub-agents inherit subset, never escalate \\
+No Ambient Authority & All authority from explicit capabilities & No implicit ``agent privileges'' \\
+Object-Capability & Reference = capability & Possession of tool implies permission \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key insight (Spritely Institute):} ``If you don't have it, you can't use it.''
+
+\subsubsection{Application to AI Agents}
+
+The confused deputy attack (Hardy, 1988) directly applies:
+\begin{itemize}
+    \item Agent has high-privilege access to multiple systems
+    \item Malicious input tricks agent into misusing privileges
+    \item Agent becomes unwitting intermediary for privilege escalation
+\end{itemize}
+
+Capability-based security prevents this: agent never has ambient authority. Each action requires explicit capability grant.
+
+\subsection{The ``Rule of Two''}
+\label{subsec:rule-of-two}
+
+Meta's practical framework (October 2025):
+
+\begin{quote}
+Until robust prompt injection detection exists, agents must satisfy \textbf{no more than two} of three properties:
+
+\begin{enumerate}
+    \item[{[A]}] Process untrustworthy inputs
+    \item[{[B]}] Access sensitive systems/data
+    \item[{[C]}] Change state or communicate externally
+\end{enumerate}
+
+ANY TWO = Lower Risk \\
+ALL THREE = HIGH RISK $\rightarrow$ Requires human-in-the-loop
+\end{quote}
+
+This is an industry acknowledgment that prompt-level defenses are insufficient.
+
+\subsection{Security Through Constraint vs. Instruction}
+\label{subsec:constraint-vs-instruction}
+
+\begin{table}[htbp]
+\centering
+\caption{Constraint-Based vs Instruction-Based Security}
+\label{tab:constraint-vs-instruction}
+\begin{tabular}{lll}
+\toprule
+\textbf{Approach} & \textbf{Mechanism} & \textbf{Guarantee} \\
+\midrule
+Instruction-based & Prompt rules (``Don't do X'') & Probabilistic \\
+Constraint-based & Architectural limits (can't access Y) & Deterministic \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{The thesis argument:} Organizations cannot verify that agents will follow prompt rules. They \textit{can} verify that agents lack capabilities they shouldn't have. Architectural security provides the deterministic foundation that prompt rules cannot.
+
+\section{Multi-Agent Reliability Patterns}
+\label{sec:multi-agent-reliability}
+
+\subsection{Overview}
+\label{subsec:multi-agent-overview}
+
+Multi-agent systems present reliability challenges distinct from single-agent architectures. Evidence from practitioner reports reveals three recurring patterns that shape trustworthiness in production deployments.
+
+\subsection{Pattern 1: Coordination Is Designed, Not Discovered}
+\label{subsec:coordination-designed}
+
+A common misconception: capable models will naturally develop clean delegation and safe boundaries when orchestrated together. Practitioner evidence contradicts this.
+
+\textbf{Finding:} Strong models do not spontaneously invent safe coordination. The orchestration layer performs essential work that cannot be delegated to model capabilities.
+
+\textbf{Implications:}
+\begin{itemize}
+    \item Treat orchestration as explicit design, not emergent property
+    \item Prompts alone are weak controls
+    \item Templates, workflows, and post-hoc enforcement matter more than model sophistication
+\end{itemize}
+
+\subsection{Pattern 2: Reliability Failures Are Operational, Not Cognitive}
+\label{subsec:operational-failures}
+
+The dominant failure mode in multi-agent systems is not model capability---it's \textbf{drift}: stale context, renamed tools, shared files changing unexpectedly, or silent divergence between tracked and actual state.
+
+\textbf{Finding:} Multi-agent systems should be analyzed as distributed systems, not AI systems. The failure modes are operational: synchronization, state management, health checking.
+
+\textbf{Implications:}
+\begin{itemize}
+    \item Reconciliation and health checks are first-class controls
+    \item Prompt versioning prevents drift between expectation and behavior
+    \item Shared-resource changelogs prevent coordination failures
+    \item Recovery mechanisms matter more than prevention
+\end{itemize}
+
+\subsection{Pattern 3: Mechanical Controls Outperform Prompt Discipline}
+\label{subsec:mechanical-controls}
+
+Strongest evidence from practitioners: boundaries enforced mechanically beat boundaries requested in prose.
+
+\textbf{Examples from practice:}
+\begin{itemize}
+    \item Git revert / post-hoc scope enforcement
+    \item Approval gates before high-risk phases
+    \item Conflict-resolution protocols between roles
+    \item Deterministic control flow via structured outputs
+    \item Hard-coded blast radius limits per operation
+\end{itemize}
+
+\textbf{Implications:}
+\begin{itemize}
+    \item Reversibility controls belong in runtime/tooling layer, not prompt engineering
+    \item Blast-radius limits must be architectural, not requested
+    \item ``The model should know better'' is not a reliability strategy
+\end{itemize}
+
+\subsection{Synthesis: Distributed Systems Discipline}
+\label{subsec:distributed-synthesis}
+
+A recurring practitioner lesson: multi-agent reliability is less a prompting problem than a coordination-and-controls problem. High-performing systems rely on:
+
+\begin{enumerate}
+    \item \textbf{Explicit orchestration templates}---roles, inputs, outputs defined in configuration
+    \item \textbf{Mechanically enforced boundaries}---not ``please stay in scope''
+    \item \textbf{Operational safeguards}---reconciliation, health checks, approval gates
+\end{enumerate}
+
+\begin{quote}
+The path from impressive demo to trustworthy practice runs through distributed-systems discipline, not better prompts.
+\end{quote}
+
+\subsection{Trust Equation Application}
+\label{subsec:multi-agent-trust}
+
+Applying the framework's trust equation to multi-agent systems:
+
+\begin{table}[htbp]
+\centering
+\caption{Trust Factors in Multi-Agent Systems}
+\label{tab:multi-agent-trust}
+\begin{tabular}{llll}
+\toprule
+\textbf{Factor} & \textbf{Single Agent} & \textbf{Multi-Agent (naive)} & \textbf{Multi-Agent (disciplined)} \\
+\midrule
+Observability & One context & Fragmented across agents & Centralized state + audit log \\
+Reversibility & One action chain & Interleaved, hard to unwind & Coordinated rollback points \\
+Blast Radius & Agent scope & Combined agent scopes & Explicit per-agent limits \\
+Autonomy & As delegated & Multiplied (N agents) & Constrained per role \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key insight:} Naive multi-agent multiplication increases autonomy factor without corresponding improvements to observability or reversibility, degrading trust. Disciplined multi-agent design constrains autonomy per-role while centralizing observability.
+
+\subsection{Design Principles}
+\label{subsec:design-principles}
+
+From these patterns, we derive:
+
+\begin{enumerate}
+    \item \textbf{Design coordination explicitly}---Define roles, boundaries, and handoff protocols before agent selection
+    \item \textbf{Treat state as distributed systems problem}---Reconciliation, conflict resolution, and health checks are mandatory
+    \item \textbf{Enforce mechanically}---Blast radius, operation scope, and reversibility controls belong in architecture, not prompts
+    \item \textbf{Log semantically}---Operations should produce audit events, not just text output
+\end{enumerate}

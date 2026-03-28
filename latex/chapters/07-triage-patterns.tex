@@ -1,0 +1,538 @@
+\chapter{Agent-Enhanced Incident Triage}
+\label{ch:triage}
+
+% Working draft - S. Vene, 2026-02-08
+
+\section{Introduction}
+\label{sec:triage-intro}
+
+Incident response consumes disproportionate platform engineering resources. Root cause analysis (RCA) alone takes 40--60\% of incident time, while alert fatigue degrades response effectiveness. The DORA 2024 report found over 39\% of respondents have little or no trust in AI tools, yet reducing MTTR remains critical for organizational performance.
+
+This chapter examines how AI agents can augment human responders in the triage and diagnosis phases of incident management---the phases where observability data (Chapter~\ref{ch:observability}) must be transformed into actionable understanding and response.
+
+\section{The Triage Challenge}
+\label{sec:triage-challenge}
+
+\subsection{Current State Pain Points}
+\label{subsec:pain-points}
+
+\begin{table}[htbp]
+\centering
+\caption{Incident Triage Challenges}
+\label{tab:triage-challenges}
+\begin{tabular}{ll}
+\toprule
+\textbf{Challenge} & \textbf{Impact} \\
+\midrule
+Information overload & Responders must correlate logs, metrics, traces, change history \\
+Expertise bottleneck & Senior engineers required for diagnosis, 24/7 coverage challenges \\
+Documentation lag & Runbooks incomplete or outdated \\
+Coordination overhead & Multi-team incidents require extensive communication \\
+Learning loss & Incident knowledge doesn't transfer to prevention \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{What Agents Can Address}
+\label{subsec:agent-capabilities}
+
+Agents excel at:
+\begin{itemize}
+    \item \textbf{Speed:} Parallel analysis of multiple data sources
+    \item \textbf{Memory:} Recall of similar past incidents and their resolutions
+    \item \textbf{Correlation:} Connecting signals across systems and time
+    \item \textbf{Consistency:} Same triage quality at 3am as at 3pm
+\end{itemize}
+
+Agents struggle with:
+\begin{itemize}
+    \item \textbf{Novel failures:} Patterns outside training distribution
+    \item \textbf{Business context:} Understanding which services matter most right now
+    \item \textbf{Human coordination:} Navigating organizational politics during major incidents
+    \item \textbf{Judgment calls:} When to escalate, who to page, what to communicate
+\end{itemize}
+
+\section{Pattern: Automated Initial Triage}
+\label{sec:auto-triage}
+
+\subsection{Problem}
+
+When an alert fires, someone must assess severity, identify the affected system, and route to the appropriate team. This initial triage is repetitive but requires context that's scattered across tools.
+
+\subsection{Solution}
+
+An agent that performs initial triage on incoming alerts: classification, severity assessment, context gathering, and routing recommendation.
+
+\subsection{Implementation}
+
+\textbf{Input processing:}
+\begin{itemize}
+    \item Alert metadata (source, severity, labels)
+    \item Service ownership data
+    \item Recent changes (deployments, config updates)
+    \item Historical alerts for same service/metric
+\end{itemize}
+
+\textbf{Triage output:}
+
+\begin{lstlisting}[language=yaml,caption={Automated Triage Output Example}]
+alert: "api-gateway-high-error-rate"
+received: "2026-02-08T14:32:00Z"
+
+triage_assessment:
+  severity: P2  # Elevated from P3 based on impact analysis
+  severity_reasoning: |
+    Error rate affects customer-facing checkout flow.
+    Currently 12% of requests failing (threshold: 5%).
+    Business hours, peak traffic period.
+
+  affected_services:
+    - api-gateway (primary)
+    - checkout-service (downstream impact)
+
+  owner_team: payments-platform
+  on_call: "@jane.smith"
+
+  context_gathered:
+    recent_deployments:
+      - "auth-service v2.3.2 deployed 2 min ago"
+    recent_changes:
+      - "none in affected services"
+    similar_alerts_24h: 0
+
+  routing_recommendation: |
+    Page payments-platform on-call.
+    Include auth-service team given recent deployment.
+
+  confidence: 0.85
+\end{lstlisting}
+
+\subsection{Autonomy Level}
+
+L3 (Monitored): Agent triages and routes. Human reviews escalation decisions.
+
+\subsection{Risks}
+
+\begin{itemize}
+    \item Misclassification leading to wrong team engagement
+    \item Severity underestimation missing critical issues
+    \item Over-alerting if agent is too conservative
+\end{itemize}
+
+\section{Pattern: Root Cause Hypothesis Generation}
+\label{sec:rca-hypothesis}
+
+\subsection{Problem}
+
+Root cause analysis requires correlating signals across systems, recalling similar past incidents, and forming hypotheses. This is cognitively demanding, especially at 3am.
+
+\subsection{Solution}
+
+An agent that analyzes incident signals and produces ranked hypotheses with supporting evidence.
+
+\subsection{Implementation}
+
+\textbf{Hypothesis generation process:}
+
+\begin{enumerate}
+    \item \textbf{Signal Collection}
+    \begin{itemize}
+        \item Query metrics for anomalies in time window
+        \item Search logs for errors/warnings
+        \item Check deployment/change timeline
+        \item Query trace data for latency breakdowns
+    \end{itemize}
+
+    \item \textbf{Pattern Matching}
+    \begin{itemize}
+        \item Compare current signals to past incidents
+        \item Identify common failure patterns
+        \item Check for known issues in similar systems
+    \end{itemize}
+
+    \item \textbf{Hypothesis Formation}
+    \begin{itemize}
+        \item Generate candidate root causes
+        \item Assign confidence based on evidence strength
+        \item Rank by likelihood and impact
+    \end{itemize}
+
+    \item \textbf{Evidence Packaging}
+    \begin{itemize}
+        \item Link to specific logs, metrics, traces
+        \item Show reasoning chain
+        \item Highlight uncertainties
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Example output:}
+
+\begin{lstlisting}[caption={Root Cause Hypothesis Example}]
+INCIDENT: checkout-service timeout errors
+
+HYPOTHESIS 1 (Confidence: 85%)
+Root Cause: Auth-service deployment introduced N+1 query pattern
+
+Evidence:
+- auth-service deployment at 14:30 UTC (2 min before incident)
+- auth-service /validate endpoint latency: 400ms -> 2.5s
+- auth-db-primary connection pool: 50/50 exhausted
+- Checkout-service depends on auth-service for validation
+- Similar pattern in INC-2391 (resolved by rollback)
+
+Suggested action: Rollback auth-service to v2.3.1
+
+---
+
+HYPOTHESIS 2 (Confidence: 35%)
+Root Cause: Traffic spike exceeding capacity
+
+Evidence:
+- Request rate 20% above daily average
+- But: capacity headroom should handle 50% spike
+- Partially explains symptoms, doesn't explain database exhaustion
+
+Suggested action: Scale checkout-service replicas (may help, not root fix)
+
+---
+
+HYPOTHESIS 3 (Confidence: 15%)
+Root Cause: Upstream provider degradation
+
+Evidence:
+- payment-provider API latency elevated
+- But: this affects different code path than observed errors
+
+Suggested action: Monitor, likely not primary cause
+\end{lstlisting}
+
+\subsection{Autonomy Level}
+
+L2 (Assisted): Agent proposes hypotheses. Human investigates and decides.
+
+\subsection{Industry Implementation: HolmesGPT}
+
+Robusta.dev's HolmesGPT implements this pattern in production. At KubeCon 2026, practitioners reported 80\% correct root cause diagnosis in under 2 minutes. Their architecture enforces read-only access with PR approval gates---the agent diagnoses but cannot directly remediate, maintaining the human-in-the-loop required for L2 autonomy.
+
+Key prerequisites they identify: strong observability infrastructure, consistent incident logging, and a structured service catalog mapping applications to resources and documentation. This validates the thesis's position that observability patterns (Chapter~\ref{ch:observability}) are prerequisites for effective triage automation.
+
+\section{Pattern: Similar Incident Retrieval}
+\label{sec:similar-incident}
+
+\subsection{Problem}
+
+Institutional knowledge about past incidents exists in post-mortems, chat logs, and engineer memories. During an incident, this knowledge is hard to access quickly.
+
+\subsection{Solution}
+
+An agent that maintains a searchable index of past incidents and retrieves relevant cases during active incidents.
+
+\subsection{Implementation}
+
+\textbf{Incident knowledge base:}
+\begin{itemize}
+    \item Post-mortem documents
+    \item Incident ticket history
+    \item Chat transcripts from incident channels
+    \item Runbook execution logs
+    \item Resolution actions taken
+\end{itemize}
+
+\textbf{Retrieval triggers:}
+\begin{itemize}
+    \item New incident opened $\rightarrow$ search for similar
+    \item Manual query (``have we seen this before?'')
+    \item Hypothesis validation (``was this root cause seen before?'')
+\end{itemize}
+
+\textbf{Similarity matching:}
+\begin{itemize}
+    \item Service/component affected
+    \item Error signatures (log patterns, error codes)
+    \item Symptom profiles (latency, error rate, saturation)
+    \item Temporal patterns (time of day, deployment correlation)
+\end{itemize}
+
+\textbf{Output:}
+
+\begin{lstlisting}[caption={Similar Incident Retrieval Output}]
+SIMILAR INCIDENTS for checkout-service timeout
+
+1. INC-2391 (1 month ago) - 92% match
+   Summary: Payment-service connection pool exhaustion
+   Root cause: Missing connection timeout, leaked connections
+   Resolution: Code fix + pool size increase
+   Relevance: Same symptom pattern, similar database involvement
+
+2. INC-2847 (2 weeks ago) - 71% match
+   Summary: Auth-service high latency
+   Root cause: Inefficient query in new feature
+   Resolution: Query optimization
+   Relevance: Same upstream service, different symptom
+
+3. INC-2156 (3 months ago) - 65% match
+   Summary: Checkout cascade failure
+   Root cause: Kubernetes node failure
+   Resolution: Pod rescheduling, node replacement
+   Relevance: Same service, different root cause class
+\end{lstlisting}
+
+\subsection{Autonomy Level}
+
+L2 (Assisted): Agent retrieves and summarizes. Human evaluates relevance.
+
+\section{Human-Agent Collaboration in Diagnosis}
+\label{sec:collaboration}
+
+\subsection{The Collaboration Model}
+\label{subsec:collaboration-model}
+
+Effective incident triage combines agent strengths (speed, memory, correlation) with human strengths (judgment, context, novel reasoning):
+
+\begin{lstlisting}[caption={Human-Agent Collaboration Flow}]
+                Incident Occurs
+                      |
+                      v
++----------------------------------------------+
+| AGENT: Initial Triage                        |
+| - Classify, route, gather context            |
+| - Generate hypotheses                        |
+| - Retrieve similar incidents                 |
++----------------------------------------------+
+                      |
+                      v
++----------------------------------------------+
+| HUMAN: Hypothesis Evaluation                 |
+| - Assess agent hypotheses                    |
+| - Add business context                       |
+| - Direct additional investigation            |
++----------------------------------------------+
+                      |
+                      v
++----------------------------------------------+
+| AGENT: Deep Dive Support                     |
+| - Run specific queries on request            |
+| - Gather additional evidence                 |
+| - Draft communications                       |
++----------------------------------------------+
+                      |
+                      v
++----------------------------------------------+
+| HUMAN: Decision and Action                   |
+| - Confirm root cause                         |
+| - Approve remediation                        |
+| - Coordinate response                        |
++----------------------------------------------+
+\end{lstlisting}
+
+\subsection{Communication Patterns}
+\label{subsec:communication-patterns}
+
+\textbf{Agent to Human:}
+\begin{itemize}
+    \item Present findings as hypotheses, not facts
+    \item Include confidence levels and evidence links
+    \item Highlight uncertainties and gaps
+    \item Suggest next steps without demanding action
+\end{itemize}
+
+\textbf{Human to Agent:}
+\begin{itemize}
+    \item Direct specific investigations (``check auth-service logs for X'')
+    \item Provide context agent lacks (``we're in a deploy freeze'')
+    \item Override agent assessments when appropriate
+    \item Confirm or reject hypotheses
+\end{itemize}
+
+\subsection{Trust Building}
+\label{subsec:trust-building-triage}
+
+From Chapter~\ref{ch:trust-framework}'s framework: triage agents should start at L2 (Assisted) and earn higher autonomy through demonstrated accuracy:
+
+\begin{table}[htbp]
+\centering
+\caption{Promotion Thresholds for Triage Agents}
+\label{tab:triage-promotion}
+\begin{tabular}{ll}
+\toprule
+\textbf{Metric} & \textbf{Threshold for L3} \\
+\midrule
+Hypothesis accuracy & $>$80\% correct in top 3 \\
+Routing accuracy & $>$95\% correct team \\
+False positive rate & $<$10\% \\
+Time operating without major error & $>$30 days \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Memory-Enhanced Incident Resolution}
+\label{sec:memory-enhanced}
+
+\subsection{Overview}
+\label{subsec:memory-overview}
+
+Incident resolution is perhaps the strongest use case for agent long-term memory. Senior SREs are valuable precisely because they remember: ``Last time the database did this, it was a connection pool leak after the Thursday deploy.''
+
+This section explores how memory systems can enhance incident agents while maintaining trust, and examines the failure modes unique to high-stakes operational memory.
+
+\subsection{Memory Architecture for Incidents}
+\label{subsec:memory-architecture}
+
+Following Hu et al. (2025) ``Memory in the Age of AI Agents,'' incident agents need three memory types:
+
+\begin{table}[htbp]
+\centering
+\caption{Memory Types for Incident Agents}
+\label{tab:memory-types}
+\begin{tabular}{lll}
+\toprule
+\textbf{Memory Type} & \textbf{Incident Application} & \textbf{Example} \\
+\midrule
+Factual & System topology, runbooks, config & ``Database pool default is 100 connections'' \\
+Experiential & Past incidents, what worked/failed & ``Similar error in \#3892 $\rightarrow$ fixed by rollback'' \\
+Working & Current investigation state & ``Already checked network, testing DB next'' \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Memory Patterns from Practice}
+\label{subsec:memory-patterns}
+
+\textbf{Similar Incident Retrieval:} Semantic search over postmortem corpus---``Have we seen this before?''
+
+\textbf{Error-Triggered Recall:} Don't retrieve unless anomaly detected. Bash error $\rightarrow$ surface past fixes for that error.
+
+\textbf{Token-Budgeted Injection:} Greedy knapsack with caps. Most relevant memories without context pollution.
+
+\textbf{Feedback Loops:} Track which recommendations were adopted. Deprioritize unused suggestions.
+
+\subsection{Trust Framework for Memory}
+\label{subsec:memory-trust}
+
+\begin{table}[htbp]
+\centering
+\caption{Trust Factors for Memory-Enhanced Agents}
+\label{tab:memory-trust}
+\begin{tabular}{lll}
+\toprule
+\textbf{Factor} & \textbf{Memory Application} & \textbf{Design Implication} \\
+\midrule
+Observability & What memories influenced this decision? & Provenance logging, retrieval explanation \\
+Reversibility & Can we undo memory-based actions? & Soft recommendations before automation \\
+Blast Radius & Impact of wrong memory? & Graduated autonomy by domain \\
+Autonomy & How much does memory drive action? & Human-in-loop for high-stakes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Memory-Specific Trust: Confidence Decay}
+
+Memory confidence should degrade:
+\begin{equation}
+\text{confidence} = \text{base\_confidence} \times \text{decay\_factor}(\text{age}, \text{domain\_volatility})
+\end{equation}
+
+Infrastructure memories decay fast (topology changes). Runbook patterns decay slower. Historical facts (incident \#3892 happened) don't decay.
+
+\subsection{Failure Modes}
+\label{subsec:memory-failures}
+
+\subsubsection{Staleness}
+
+Infrastructure changed but knowledge wasn't updated. The topology map is wrong. The escalation path goes to someone who left.
+
+\textbf{Mitigation:} Temporal validity tags, confidence decay, automated validation against current state.
+
+\subsubsection{Overfitting}
+
+Pattern worked 5 times, agent becomes overconfident. But those 5 incidents had the same root cause. New incident with same symptom, different cause $\rightarrow$ wrong remediation applied confidently.
+
+\textbf{Mitigation:} Track conditions of success, require diversity in validation, decay confidence in novel contexts.
+
+\subsubsection{Pollution (Adversarial)}
+
+AGENTPOISON (NeurIPS 2024) and PoisonedRAG (USENIX 2025) demonstrate attacks on agent memory:
+\begin{itemize}
+    \item Malicious postmortem suggests harmful runbook
+    \item Poisoned similar-incident matching
+\end{itemize}
+
+\textbf{Mitigation:} Cryptographic signing of authoritative knowledge, provenance tracking, anomaly detection on memory updates.
+
+\subsubsection{Dilution}
+
+Too much retrieved context overwhelms signal. 10 ``similar'' incidents, none truly relevant. Token budget consumed by noise.
+
+\textbf{Mitigation:} Token budgeting, relevance thresholds, hierarchical retrieval (summary first, detail on demand).
+
+\subsubsection{Feedback Loop Pathologies}
+
+Agent suggests wrong root cause $\rightarrow$ operator accepts (time pressure) $\rightarrow$ postmortem records as ``correct'' $\rightarrow$ future incidents get same wrong answer $\rightarrow$ self-reinforcing error.
+
+\textbf{Mitigation:} Distinguish ``operator accepted'' from ``operator validated.'' Track long-term outcomes. Periodic expert review.
+
+\subsection{Trust Zones for Memory-Driven Actions}
+\label{subsec:trust-zones}
+
+\begin{table}[htbp]
+\centering
+\caption{Trust Zones for Memory-Driven Actions}
+\label{tab:trust-zones}
+\begin{tabular}{llll}
+\toprule
+\textbf{Zone} & \textbf{Memory Use} & \textbf{Human Role} & \textbf{Example} \\
+\midrule
+Advisory & Surface similar incidents & Full review & ``Consider checking pool based on \#3892'' \\
+Guided & Pre-fill diagnostic commands & Approve/execute & ``Run these queries? [Execute/Skip]'' \\
+Supervised & Execute known-safe actions & Exception handling & Auto-route pages, assign severity \\
+Autonomous & Full remediation from memory & Post-hoc audit & Auto-restart for recognized patterns \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Progression rule:} Agents earn autonomy through demonstrated accuracy, tracked per domain.
+
+\section{Risks and Mitigations}
+\label{sec:triage-risks}
+
+\begin{table}[htbp]
+\centering
+\caption{Triage Pattern Risks and Mitigations}
+\label{tab:triage-risks}
+\begin{tabular}{ll}
+\toprule
+\textbf{Risk} & \textbf{Mitigation} \\
+\midrule
+Wrong diagnosis with high confidence & Present as hypothesis, require evidence review \\
+Over-reliance---team skills atrophy & Periodic agent-free exercises, training \\
+Coordination confusion & Clear role definitions, explicit handoffs \\
+Sensitive data in communications & Redaction rules, output filtering \\
+Alert storm amplification & Rate limiting, correlation before routing \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Summary}
+\label{sec:triage-summary}
+
+Agent-enhanced triage transforms incident response from a purely human cognitive task to a human-agent collaboration:
+
+\begin{table}[htbp]
+\centering
+\caption{Triage Pattern Summary}
+\label{tab:triage-summary}
+\begin{tabular}{lll}
+\toprule
+\textbf{Pattern} & \textbf{Problem Solved} & \textbf{Autonomy Level} \\
+\midrule
+Automated Initial Triage & Repetitive classification and routing & L3 \\
+Root Cause Hypothesis & Correlation and pattern matching & L2 \\
+Similar Incident Retrieval & Institutional knowledge access & L2 \\
+Memory-Enhanced Resolution & Long-term operational learning & L2--L4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The next chapter examines the more sensitive question: when and how can agents participate in remediation?
+
+\textit{This chapter addresses RQ2: To what extent can agentic reasoning improve incident triage and root cause analysis compared to existing SRE practices?}

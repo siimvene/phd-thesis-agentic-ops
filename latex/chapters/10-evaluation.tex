@@ -1,0 +1,256 @@
+\chapter{Evaluation and Limitations}
+\label{ch:evaluation}
+
+% Working draft - S. Vene, 2026-02-08
+
+\section{Introduction}
+\label{sec:evaluation-intro}
+
+This thesis proposes a trust framework and operational patterns for agent-enhanced platform engineering. This chapter addresses how these contributions can be evaluated and honestly acknowledges their limitations.
+
+\section{Validation Approach}
+\label{sec:validation-approach}
+
+\subsection{Design Science Evaluation}
+\label{subsec:design-science-evaluation}
+
+Following the Design Science Research paradigm \citep{hevner2004,peffers2007}, the contributions are evaluated against:
+
+\textbf{Utility:} Do the artifacts solve the identified problems?
+\begin{itemize}
+    \item Trust framework: Does it help organizations reason about appropriate autonomy levels?
+    \item Operational patterns: Do they provide actionable guidance for implementation?
+\end{itemize}
+
+\textbf{Quality:} Are the artifacts well-constructed?
+\begin{itemize}
+    \item Internal consistency: Do patterns and framework components align?
+    \item Completeness: Are major use cases covered?
+    \item Clarity: Can practitioners understand and apply the guidance?
+\end{itemize}
+
+\textbf{Efficacy:} Do the artifacts work in practice?
+\begin{itemize}
+    \item Practitioner review: Do experienced platform engineers find the patterns plausible?
+    \item Constraint satisfaction: Do patterns survive stress-testing against real enterprise constraints?
+\end{itemize}
+
+\subsection{Validation Activities Conducted}
+\label{subsec:validation-activities}
+
+\begin{table}[htbp]
+\centering
+\caption{Validation Activities}
+\label{tab:validation-activities}
+\begin{tabular}{lll}
+\toprule
+\textbf{Activity} & \textbf{Purpose} & \textbf{Status} \\
+\midrule
+Literature grounding & Trust framework rooted in Mayer et al. (1995) & Complete \\
+Pattern stress-testing & Enterprise patterns tested against constraints & Complete \\
+Practitioner experience & Author's 15 years applied to development & Complete \\
+Industry evidence collection & Documented deployments validating patterns & Ongoing \\
+Peer review & Academic and practitioner feedback & Ongoing \\
+Empirical validation & Deployment and measurement in real environments & Future work \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Industry Evidence}
+\label{subsec:industry-evidence}
+
+While controlled empirical validation remains future work, emerging industry deployments provide practitioner-level validation that the patterns in this thesis reflect real-world practice.
+
+\textbf{HolmesGPT / Robusta.dev (KubeCon 2026)}
+
+Elroy Parkinson reported at KubeCon that production deployments of HolmesGPT achieve 80\% correct root cause diagnosis in under 2 minutes. Their architecture directly implements this thesis's trust framework:
+
+\begin{table}[htbp]
+\centering
+\caption{HolmesGPT Trust Framework Implementation}
+\label{tab:holmesgpt-trust}
+\begin{tabular}{ll}
+\toprule
+\textbf{Trust Factor} & \textbf{HolmesGPT Implementation} \\
+\midrule
+Observability & ``Strong observability infrastructure'' as explicit prerequisite \\
+Reversibility & PR approval gate---agent proposes, human approves \\
+Blast Radius & Read-only access---no direct mutation of production \\
+Autonomy & L2--L3: Agent performs diagnosis, human retains execution authority \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Their finding that ``AI agents struggle with poorly maintained environments'' validates this thesis's position that observability patterns (Chapter~\ref{ch:observability}) are prerequisites, not optional enhancements.
+
+\textbf{Limitations of industry evidence:}
+\begin{itemize}
+    \item Vendor claims lack published methodology
+    \item Selection bias toward success stories
+    \item No controlled comparison with non-agent approaches
+\end{itemize}
+
+Industry evidence is cited as \textit{practitioner validation}---confirmation that the patterns reflect real deployments---not as \textit{empirical proof} of efficacy.
+
+\subsection{What Has Been Validated}
+\label{subsec:validated}
+
+\textbf{Trust Framework (Chapter~\ref{ch:trust-framework}):}
+\begin{itemize}
+    \item Grounded in established organizational trust theory \citep{mayer1995}
+    \item Components (Observability, Reversibility, Blast Radius, Autonomy) derived from operational practice
+    \item Constraint-based approach is logically consistent
+    \item Practitioner review confirms face validity
+\end{itemize}
+
+\textbf{Operational Patterns (Chapters~\ref{ch:observability}--\ref{ch:remediation}):}
+\begin{itemize}
+    \item Patterns derived from industry practice and literature
+    \item Stress-tested against enterprise constraints (multi-tenancy, PAM, compliance)
+    \item Aligned with emerging industry tools and approaches
+\end{itemize}
+
+\textbf{Enterprise Deployment Patterns (Chapter~\ref{ch:implementation}):}
+\begin{itemize}
+    \item Derived from design exploration against real constraints
+    \item Address gaps identified in current tool ecosystem
+    \item Cross-referenced with industry best practices (Zero Trust, PAM integration)
+\end{itemize}
+
+\section{Limitations}
+\label{sec:limitations}
+
+\subsection{Methodological Limitations}
+\label{subsec:methodological-limitations}
+
+\textbf{Practitioner Bias:}
+The patterns emerge from the author's experience in government and financial services. Other sectors (healthcare, retail, startups) may face different constraints and opportunities. The patterns should be adapted, not adopted wholesale.
+
+\textbf{Single Practitioner Perspective:}
+While informed by 15 years of experience across multiple organizations, the thesis reflects one practitioner's viewpoint. Broader validation through multiple practitioners would strengthen generalizability.
+
+\textbf{Design Science vs. Empirical Research:}
+The thesis proposes artifacts (frameworks, patterns) rather than testing hypotheses about the world. This is appropriate for the current state of the field but means contributions are ``proposed solutions'' not ``proven solutions.''
+
+\subsection{Validation Limitations}
+\label{subsec:validation-limitations}
+
+\textbf{No Controlled Experiments:}
+The patterns have not been tested through randomized controlled trials comparing agent-enhanced vs. traditional approaches. Such experiments would require significant organizational commitment and time.
+
+\textbf{No Longitudinal Deployment Data:}
+Claims about patterns improving MTTR, reducing toil, or building trust are hypothesized, not measured. The original proposal anticipated longitudinal industrial case studies; this remains future work.
+
+\textbf{Trust Framework Not Empirically Calibrated:}
+The constraint thresholds (e.g., ``L4 requires automated rollback $<$15min'') represent practitioner judgment, not empirically derived cutoffs. Organizations should calibrate based on their risk tolerance.
+
+\subsection{Scope Limitations}
+\label{subsec:scope-limitations}
+
+\textbf{Focus on Observability/Incident/Remediation:}
+The thesis focuses on operational contexts (RQ1--3) rather than the full platform engineering lifecycle. Design-time and build-time agent applications are mentioned but not deeply explored.
+
+\textbf{Enterprise Context:}
+Patterns assume relatively mature platform engineering organizations. Startups or less mature organizations may need different approaches.
+
+\textbf{Technology Snapshot:}
+The LLM and agent ecosystem is evolving rapidly. Specific tool recommendations (LangGraph, CrewAI, etc.) may become outdated. The principles should remain applicable; implementation details may require updating.
+
+\subsection{What This Thesis Does NOT Claim}
+\label{subsec:not-claimed}
+
+\begin{itemize}
+    \item The Trust Framework is NOT a calculable formula producing definitive scores
+    \item The patterns are NOT guaranteed to improve MTTR or reduce incidents
+    \item The autonomy levels are NOT empirically validated cutoffs
+    \item Agent-enhanced operations does NOT replace human judgment for novel or high-stakes situations
+\end{itemize}
+
+\section{Future Work}
+\label{sec:future-work}
+
+\subsection{Empirical Validation}
+\label{subsec:empirical-validation}
+
+\textbf{Longitudinal Deployment Studies:}
+Deploy patterns in partner organizations and measure:
+\begin{itemize}
+    \item Mean Time to Resolution (MTTR) before/after
+    \item Incident recurrence rates
+    \item Engineer cognitive load (surveys)
+    \item Trust calibration accuracy (appropriate reliance)
+\end{itemize}
+
+\textbf{Trust Framework Calibration:}
+Survey practitioners on trust decisions to empirically ground:
+\begin{itemize}
+    \item Which components matter most?
+    \item What thresholds are appropriate for different contexts?
+    \item How does trust evolve over time with agent experience?
+\end{itemize}
+
+\subsection{Pattern Extension}
+\label{subsec:pattern-extension}
+
+\textbf{Design-Time Patterns:}
+Extend coverage to infrastructure design, including:
+\begin{itemize}
+    \item Agent-assisted architecture review
+    \item Cost optimization recommendations
+    \item Security posture assessment
+\end{itemize}
+
+\textbf{Build-Time Patterns:}
+Extend coverage to CI/CD integration:
+\begin{itemize}
+    \item IaC generation and review
+    \item Test generation for infrastructure
+    \item Dependency vulnerability assessment
+\end{itemize}
+
+\subsection{Tool Development}
+\label{subsec:tool-development}
+
+\textbf{Trust Dashboard:}
+Tool that operationalizes the trust framework:
+\begin{itemize}
+    \item Assess current safeguards against autonomy level requirements
+    \item Track agent performance metrics for trust calibration
+    \item Recommend autonomy adjustments based on track record
+\end{itemize}
+
+\textbf{Pattern Implementation Library:}
+Reference implementations of operational patterns:
+\begin{itemize}
+    \item Observability synthesis agents
+    \item Triage automation workflows
+    \item Runbook execution frameworks
+\end{itemize}
+
+\section{Contribution to Knowledge}
+\label{sec:contribution}
+
+Despite limitations, this thesis contributes:
+
+\begin{enumerate}
+    \item \textbf{First constraint-based trust framework for operational agents}---Grounded in organizational trust theory, actionable for practitioners
+
+    \item \textbf{Systematic treatment of observability/triage/remediation patterns}---Consolidates emerging practice with structured guidance
+
+    \item \textbf{Enterprise deployment patterns}---Addresses real constraints (PAM, multi-tenancy, cost, data sovereignty) that existing frameworks overlook
+
+    \item \textbf{Honest acknowledgment of limitations}---Presents contributions as hypotheses for practice, not proven solutions
+\end{enumerate}
+
+The contributions are offered as a foundation for both practice and future research.
+
+\section{Summary}
+\label{sec:evaluation-summary}
+
+This chapter has:
+\begin{itemize}
+    \item Described the validation approach appropriate for Design Science Research
+    \item Honestly acknowledged methodological, validation, and scope limitations
+    \item Outlined future work for empirical validation and extension
+    \item Positioned the contributions as foundations for ongoing research and practice
+\end{itemize}

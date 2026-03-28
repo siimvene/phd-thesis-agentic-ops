@@ -1,0 +1,190 @@
+% TalTech Doctoral Thesis
+% Agent-Enhanced Platform Engineering
+% Siim Vene, 2026
+
+\documentclass{TTUPhD}
+
+% Thesis metadata
+\thesistitle{Agent-Enhanced Platform Engineering: Trust Frameworks and Patterns for Observability and Incident Response}
+\thesistitleet{Agentidega täiustatud platvormiarendus: usaldusraamistikud ja mustrid jälgitavuse ning intsidentidele reageerimise jaoks}
+\thesisauthor{Siim Vene}
+\supervisor{[Supervisor Name], PhD, TalTech}
+% \cosupervisor{[Co-supervisor Name], PhD, [Institution]}
+% \opponent{[Opponent Name], PhD, [Institution]}
+% \defensedate{[Date]}
+% \issn{XXXX-XXXX}
+% \isbn{XXX-XXX-XXXX-XX-X}
+
+\begin{document}
+
+% Front matter
+\frontmatter
+
+% Title pages
+\maketitlepage
+\maketitlepageet
+\makereversepage
+
+% Table of contents
+\tableofcontents
+\listoffigures
+\listoftables
+
+% Publications (if article-based thesis)
+\begin{publications}
+This thesis is a monograph. No prior publications are included.
+\end{publications}
+
+% Author contributions
+\begin{contributions}
+All work presented in this thesis is the original contribution of the author, conducted under the supervision of [Supervisor Name].
+\end{contributions}
+
+% Abbreviations
+\begin{abbreviations}
+\begin{tabular}{ll}
+AI & Artificial Intelligence \\
+API & Application Programming Interface \\
+CI/CD & Continuous Integration/Continuous Deployment \\
+DORA & DevOps Research and Assessment \\
+IDP & Internal Developer Platform \\
+K8s & Kubernetes \\
+LLM & Large Language Model \\
+MCP & Model Context Protocol \\
+MTTR & Mean Time to Recovery \\
+NIS2 & Network and Information Security Directive 2 \\
+PAM & Privileged Access Management \\
+RBAC & Role-Based Access Control \\
+RCA & Root Cause Analysis \\
+SLO & Service Level Objective \\
+SRE & Site Reliability Engineering \\
+\end{tabular}
+\end{abbreviations}
+
+% Main matter
+\mainmatter
+
+% Part I: Foundations
+\part{Foundations}
+\include{chapters/01-introduction}
+\include{chapters/02-literature-review}
+
+% Part II: Trust and Governance
+\part{Trust and Governance}
+\include{chapters/03-trust-problem}
+\include{chapters/04-trust-framework}
+\include{chapters/05-governance}
+
+% Part III: Operational Patterns
+\part{Operational Patterns}
+\include{chapters/06-observability-patterns}
+\include{chapters/07-triage-patterns}
+\include{chapters/08-remediation-patterns}
+
+% Part IV: Implementation and Evaluation
+\part{Implementation and Evaluation}
+\include{chapters/09-implementation}
+\include{chapters/10-evaluation}
+\include{chapters/11-conclusion}
+
+% Back matter
+\backmatter
+
+% Acknowledgements
+\chapter*{Acknowledgements}
+\addcontentsline{toc}{chapter}{Acknowledgements}
+
+[To be written]
+
+% Bibliography
+\bibliographystyle{apalike}
+\bibliography{references}
+
+% Abstracts
+\begin{abstracten}
+This thesis develops a trust framework and operational patterns for integrating AI agents into platform engineering, with focus on observability, incident triage, and remediation. The core contribution is a constraint-based trust model grounded in organizational trust theory (Mayer et al., 1995) that enables organizations to calibrate appropriate autonomy levels for operational agents.
+
+The research addresses four questions: (1) How can agents enhance observability? (2) Can agentic reasoning improve incident triage? (3) Under what conditions can agents safely perform remediation? (4) What trust mechanisms enable appropriate autonomy calibration?
+
+Using Design Science methodology grounded in 15 years of platform engineering practice, this thesis proposes: a Trust Equation mapping Observability, Reversibility, and Blast Radius to autonomy levels; operational patterns for agent-enhanced observability, triage, and remediation; and governance guidance for enterprise deployment.
+
+The work contributes to the emerging field of agent-enhanced operations by providing actionable frameworks for practitioners seeking to deploy AI agents in production systems responsibly.
+
+\textbf{Keywords:} AI agents, platform engineering, trust framework, observability, incident response, autonomous systems, LLM
+\end{abstracten}
+
+\begin{abstractet}
+Käesolev doktoritöö arendab usaldusraamistikku ja operatiivseid mustreid tehisintellekti agentide integreerimiseks platvormiarendusse, keskendudes jälgitavusele, intsidentide triaazhile ja remediatsioonile. Peamine panus on piirangupõhine usaldus\-mudel, mis põhineb organisatsioonilise usalduse teoorial (Mayer et al., 1995) ja võimaldab organisatsioonidel kalibreerida operatiivsete agentide jaoks sobivaid autonoomia tasemeid.
+
+Uurimistöö käsitleb nelja küsimust: (1) Kuidas saavad agendid parandada jälgitavust? (2) Kas agentne arutlus parandab intsidentide triaazhit? (3) Millistel tingimustel saavad agendid ohutult teostada remediatsiooni? (4) Millised usaldusmehhanismid võimaldavad sobivat autonoomia kalibreerimist?
+
+Kasutades disainiteaduse metoodikat, mis põhineb 15-aastasel platvormiarenduse praktikal, pakub käesolev töö: usaldusvõrrandit, mis seob jälgitavuse, pööratavuse ja mõjuulatuse autonoomia tasemetega; operatiivseid mustreid agentidega täiustatud jälgitavuse, triazhi ja remediatsiooni jaoks; ning juhtimissuuniseid ettevõtte juurutamiseks.
+
+\textbf{Võtmesõnad:} tehisintellekti agendid, platvormiarendus, usaldusraamistik, jälgitavus, intsidentidele reageerimine, autonoomsed süsteemid, suur keele\-mudel
+\end{abstractet}
+
+% Curriculum Vitae
+\begin{curriculumvitae}
+\textbf{Siim Vene}
+
+\section*{Personal Information}
+Date of birth: [Date]\\
+Citizenship: Estonian
+
+\section*{Contact}
+Email: siim.vene@taltech.ee
+
+\section*{Education}
+\begin{tabular}{ll}
+2026-- & PhD (ongoing), TalTech, Information Technology \\
+[Year] & MSc, [University], [Field] \\
+[Year] & BSc, [University], [Field] \\
+\end{tabular}
+
+\section*{Professional Experience}
+\begin{tabular}{ll}
+2020-- & Chief Infrastructure Architect, SMIT \\
+2019-- & Program Manager, TalTech \\
+2023-- & Public Cloud Service Manager, Riigi IT Keskus \\
+2025-- & Founder, Kleidia \\
+2017--2020 & Domain Architect, Swedbank \\
+\end{tabular}
+
+\section*{Research Interests}
+Platform engineering, AI agents, observability, incident response, trust frameworks, autonomous systems
+
+\section*{Publications}
+[To be updated]
+\end{curriculumvitae}
+
+\begin{elulookirjeldus}
+\textbf{Siim Vene}
+
+\section*{Isikuandmed}
+Sünniaeg: [Kuupäev]\\
+Kodakondsus: Eesti
+
+\section*{Kontakt}
+E-post: siim.vene@taltech.ee
+
+\section*{Haridus}
+\begin{tabular}{ll}
+2026-- & Doktorantuur (pooleli), TalTech, Infotehnoloogia \\
+[Aasta] & MSc, [Ülikool], [Eriala] \\
+[Aasta] & BSc, [Ülikool], [Eriala] \\
+\end{tabular}
+
+\section*{Töökogemus}
+\begin{tabular}{ll}
+2020-- & Taristu peaarhitekt, SMIT \\
+2019-- & Programmijuht, TalTech \\
+2023-- & Avaliku pilve teenusehaldur, Riigi IT Keskus \\
+2025-- & Asutaja, Kleidia \\
+2017--2020 & Domeeniarhitekt, Swedbank \\
+\end{tabular}
+
+\section*{Teadustöö huvialad}
+Platvormiarendus, tehisintellekti agendid, jälgitavus, intsidentidele reageerimine, usaldusraamistikud, autonoomsed süsteemid
+\end{elulookirjeldus}
+
+\end{document}

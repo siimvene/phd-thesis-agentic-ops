@@ -1,0 +1,23 @@
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+
+# PDF output (keep source, build locally)
+# thesis.pdf
+
+# Editor backup files
+*~
+*.swp
+*.bak
+
+# macOS
+.DS_Store
