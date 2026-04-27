@@ -36,24 +36,26 @@ We documented reusable patterns for human-agent collaboration in platform work. 
 
 These patterns provide actionable guidance for platform teams evaluating agent integration, answering not just "where" but "how" agents should be deployed.
 
-### Contribution 3: The Trust Framework
+### Contribution 3: The Operational Trust Calibration Framework
 
-We proposed a comprehensive framework for reasoning about trust in agentic systems, centered on the Trust Equation:
+We proposed a framework for reasoning about appropriate autonomy levels in operational AI agents, centred on the **ORB kernel**:
 
 ```
-                 Observability × Reversibility × Blast Radius Control
-Effective Trust = ─────────────────────────────────────────────────────
-                                    Autonomy Level
+                          Observability × Reversibility
+Appropriate Autonomy ∝ ──────────────────────────────────
+                                 Blast Radius
 ```
+
+This is a structured decision heuristic, not a numerical formula (Chapter 4 §4.3.2). The framework wraps the kernel in a six-element governance envelope and defines four autonomy levels (L0 Observe and summarize, L1 Recommend and justify, L2 Execute bounded reversible actions with authorization, L3 Conditional bounded autonomy), with broad unsupervised autonomy explicitly excluded from production deployment. The framework is published as Article 1 of the article-based thesis (see [`articles/article-1-trust-calibrated-autonomy/`](../articles/article-1-trust-calibrated-autonomy/)).
 
 Supporting constructs include:
 
-- **The Deterministic-Probabilistic Shift** — Articulating why traditional automation assumptions fail for agentic systems
-- **Progressive Autonomy Model** — Adapting the ATF's "earned trust" concept for platform engineering contexts
-- **Trust-Building Patterns** — Five concrete patterns (Audit Everything, Rewind Capability, Blast Radius Containment, Human Checkpoints, Progressive Trust)
-- **The Complexity Cliff** — Analysis of how trust requirements scale non-linearly from single-team to enterprise deployments
+- **The Deterministic-Probabilistic Shift** — Articulating why traditional automation assumptions fail for agentic systems (Chapter 3)
+- **Progressive Autonomy Mechanisms** — Adapting the CSA ATF's "earned trust" concept onto the L0–L3 ladder for platform engineering contexts (Chapter 4 §4.4.3)
+- **Trust-Building Patterns** — Five concrete patterns (Audit Everything, Rewind Capability, Blast Radius Containment, Human Checkpoints, Progressive Trust) operationalising the governance envelope at scale (Chapter 5)
+- **The Complexity Cliff** — Analysis of how the ORB ratios scale non-linearly from single-team to enterprise deployments
 
-This framework provides both theoretical grounding and practical mechanisms for building trustworthy agent-enhanced systems.
+This framework provides theoretical grounding and practical mechanisms for building trustworthy agent-enhanced systems. Empirical validation of the kernel and tier boundaries is in progress through the practitioner-validation phase described in Chapter 10 §10.4.1.
 
 ### Contribution 4: Practical Guidance
 

@@ -107,21 +107,21 @@ A dedicated agent service handles requests from multiple applications. Character
 
 ### 9.2.2 Choosing Topology by Trust Requirements
 
-The Trust Equation from Chapter 5 guides topology selection:
+The ORB kernel from Chapter 4 guides topology selection:
 
 ```
-                 Observability × Reversibility × Blast Radius Control
-Effective Trust = ─────────────────────────────────────────────────────
-                                    Autonomy Level
+                          Observability × Reversibility
+Appropriate Autonomy ∝ ──────────────────────────────────
+                                 Blast Radius
 ```
 
-| Topology | Observability | Reversibility | Blast Radius | Suitable Autonomy |
-|----------|--------------|---------------|--------------|-------------------|
-| Embedded | Low (requires instrumentation) | Low (shared state) | Unbounded (process scope) | Low (L1-L2) |
-| Sidecar | Medium (structured logging) | Medium (process restart) | Bounded per pod | Medium (L2-L3) |
-| Centralized | High (native auditing) | High (session management) | Controlled (tenant isolation) | High (L3-L4) |
+| Topology | Observability | Reversibility | Blast Radius | Justified Autonomy Ceiling |
+|---|---|---|---|---|
+| Embedded | Low (requires instrumentation) | Low (shared state) | Unbounded (process scope) | L0–L1 |
+| Sidecar | Medium (structured logging) | Medium (process restart) | Bounded per pod | L1–L2 |
+| Centralized | High (native auditing) | High (session management) | Controlled (tenant isolation) | L2–L3 |
 
-**Recommendation:** Enterprise deployments requiring L3+ autonomy should use centralized or sidecar topologies with explicit trust boundaries.
+**Recommendation:** Enterprise deployments operating at L2 or L3 should use centralized or sidecar topologies with explicit trust boundaries. Embedded topologies are restricted to L0–L1 unless observability and reversibility are actively engineered up.
 
 ### 9.2.3 Hybrid Topologies
 
