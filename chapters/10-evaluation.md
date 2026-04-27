@@ -130,20 +130,32 @@ The LLM and agent ecosystem is evolving rapidly. Specific tool recommendations (
 
 ## 10.4 Future Work
 
-### 10.4.1 Empirical Validation
+### 10.4.1 Empirical Validation — Article 1 Phase (designed, pending IRB)
 
-**Longitudinal Deployment Studies:**
-Deploy patterns in partner organizations and measure:
-- Mean Time to Resolution (MTTR) before/after
-- Incident recurrence rates
-- Engineer cognitive load (surveys)
-- Trust calibration accuracy (appropriate reliance)
+The empirical phase of Article 1 is operationally scoped. As of 2026-04-27 the components below are drafted; data collection is contingent on TalTech ethics committee approval.
 
-**Trust Framework Calibration:**
-Survey practitioners on trust decisions to empirically ground:
-- Which components matter most?
-- What thresholds are appropriate for different contexts?
-- How does trust evolve over time with agent experience?
+**Method:** Semi-structured expert interviews (60–75 minutes) with embedded incident-scenario stress testing. Two analytic outputs: (1) a comparative matrix of role × scenario × ORB ratings × chosen autonomy tier × required controls, and (2) thematic coding of practitioner justifications.
+
+**Sample:** 10–14 experts, purposive maximum-variation sampling. Recruited primarily from SMIT (Estonian Ministry of the Interior IT Centre, the industrial partner) and comparable organisations. Inclusion criteria: ≥3 years in production operations, reliability, security, or service management; hands-on incident-resolution experience. Roles span platform/infrastructure architecture, crisis management, platform engineering, security operations, critical-service ownership, and risk/audit functions.
+
+**Instrument:** Four incident scenarios (A–D) cover non-critical post-deploy degradation (telemetry good, rollback likely), citizen-facing auth instability with partial visibility into external dependencies, suspected security incident with potentially tampered logs, and a high-blast-radius critical-service intervention recommendation. For each scenario, participants rate Observability, Reversibility, and Blast Radius on a 1–5 scale, choose a maximum acceptable autonomy level (L0–L3 per Chapter 4), and name the governance-envelope controls (§4.3.4) they would require.
+
+**Timeline:** Interviews May–October 2026; analysis October–December 2026. Pseudonymised transcripts retained until 31.12.2029 for thesis and publication; raw recordings deleted within 60 days of QC; pseudonym key destroyed by 31.12.2026 or sooner.
+
+**Ethics:** Application drafted for TalTech research ethics committee. Risk model treats interviews as **confidential, not anonymous** (pseudonyms EXP01+, indirect re-identification acknowledged given the small expert community). Right to withdraw is up to 14 days post-interview or until pseudonymisation completes, whichever comes first. Scenarios are abstract or synthetic — no probing of real production systems, no source code, configurations, or log archives collected.
+
+**What the empirical phase will and will not validate.** The interviews validate whether the ORB kernel (§4.3.2) is intelligible and usable to practitioners, whether the L0–L3 ladder boundaries are operationally meaningful, and which governance-envelope controls practitioners require at each tier. They do **not** validate failure rates, MTTR improvements, or other deployment-outcome metrics — those require longitudinal studies described under §10.4.1.2 below.
+
+### 10.4.1.2 Longitudinal Deployment Studies (Article 2 and beyond)
+
+Beyond Article 1's protocol, deeper empirical work — measuring deployment outcomes rather than practitioner judgement — is reserved for subsequent thesis articles:
+
+- Mean Time to Resolution (MTTR) before/after agent deployment in partner organisations
+- Incident recurrence rates at each autonomy tier
+- Engineer cognitive load (validated survey instruments)
+- Trust calibration accuracy: do practitioners' tier choices in interview match the tier choices that actually held up in deployment?
+
+These are scoped for Articles 2 and 3 of the article-based thesis, not Article 1.
 
 ### 10.4.2 Pattern Extension
 
