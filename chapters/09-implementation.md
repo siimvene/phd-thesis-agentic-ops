@@ -1634,11 +1634,11 @@ The constraint table from Chapter 4 applies at every level — what changes is t
 **Trust Implementation:**
 
 | Autonomy Level | What It Looks Like |
-|----------------|-------------------|
-| L1 Supervised | Agent suggests commands, human copy-pastes to terminal |
-| L2 Assisted | Agent prepares script, human reviews and executes |
-| L3 Monitored | Agent executes on jump host, human reviews session log |
-| L4+ | Not recommended without infrastructure investment |
+|---|---|
+| **L0** Observe and summarize | Agent surfaces relevant logs and recent changes, no recommendation |
+| **L1** Recommend and justify | Agent suggests commands, human copy-pastes to terminal |
+| **L2** Execute bounded reversible actions with authorization | Agent prepares script, human reviews and approves, agent executes on jump host with session recording |
+| **L3** and beyond | Not recommended without infrastructure investment in observability and reversibility |
 
 **Observability:** Bash history, SSH session recording (script command), simple log aggregation.
 
@@ -1660,10 +1660,10 @@ script -a /var/log/sessions/$(date +%Y%m%d-%H%M%S)-$(whoami).log
 **Trust Implementation:**
 
 | Autonomy Level | What It Looks Like |
-|----------------|-------------------|
-| L1-L2 | Standard assisted workflows |
-| L3 Monitored | Agent executes approved playbooks, logs to central system |
-| L4 Bounded | Agent manages non-production environments autonomously |
+|---|---|
+| **L0–L1** | Surface evidence, suggest commands; standard assisted workflows |
+| **L2** Execute bounded reversible actions with authorization | Agent executes approved playbooks per action, logs to central system |
+| **L3** Conditional bounded autonomy | Agent manages **non-production** environments within a pre-approved envelope, with anomaly alerting and complete logging — production stays at L2 until track record justifies promotion |
 
 **Observability:** Centralized logging (ELK, Grafana Loki), basic metrics (Prometheus), deployment tracking.
 

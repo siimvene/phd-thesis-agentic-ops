@@ -315,7 +315,7 @@ For systems like SwarmOps where multiple specialized agents coordinate on shared
 
 ### Autonomy Level
 
-L3-L5 (Monitored to Trusted): Enables high-autonomy operation because failures are recoverable and attributable.
+L3 (Conditional bounded autonomy): Enables operation at the framework's highest production-permitted tier because failures are recoverable and attributable through provenance-backed state.
 
 ### Risks
 
@@ -356,13 +356,13 @@ Agent reasoning based on outdated dependency maps, old architecture diagrams, or
 Agent-enhanced observability addresses the core challenge of modern systems: too much data, too little understanding. Key patterns:
 
 | Pattern | Problem Solved | Autonomy Level |
-|---------|---------------|----------------|
-| Contextual Log Synthesis | Signal overload | L2-L3 |
-| Cross-System Correlation | Dependency reasoning | L2 |
-| Natural Language Queries | Query language barrier | L2 |
-| Provenance-Backed Agent State | Multi-agent causation | L3-L5 |
+|---|---|---|
+| Contextual Log Synthesis | Signal overload | L1–L2 |
+| Cross-System Correlation | Dependency reasoning | L1 |
+| Natural Language Queries | Query language barrier | L1 |
+| Provenance-Backed Agent State | Multi-agent causation | L2–L3 |
 
-These patterns transform agents from query assistants into sense-making partners. The provenance pattern is particularly significant: it provides the architectural foundation for both Observability and Reversibility in the Trust Framework (Chapter 4), enabling higher autonomy levels while maintaining auditability.
+These patterns transform agents from query assistants into sense-making partners. The provenance pattern is particularly significant: it provides the architectural foundation for both Observability and Reversibility in the ORB kernel (Chapter 4 §4.3.2), enabling the higher production-permitted autonomy tiers while maintaining auditability.
 
 The next chapter examines how this understanding feeds into incident triage.
 
