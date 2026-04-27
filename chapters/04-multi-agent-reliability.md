@@ -74,18 +74,18 @@ A recurring practitioner lesson: multi-agent reliability is less a prompting pro
 
 > The path from impressive demo to trustworthy practice runs through distributed-systems discipline, not better prompts.
 
-## Trust Equation Application
+## ORB Kernel Application
 
-Applying the framework's trust equation to multi-agent systems:
+Applying the framework's ORB kernel (§4.3.2) to multi-agent systems makes the structural risk explicit:
 
-| Factor | Single Agent | Multi-Agent (naive) | Multi-Agent (disciplined) |
-|--------|--------------|---------------------|---------------------------|
+| Dimension | Single Agent | Multi-Agent (naive) | Multi-Agent (disciplined) |
+|---|---|---|---|
 | **Observability** | One context | Fragmented across agents | Centralized state + audit log |
 | **Reversibility** | One action chain | Interleaved, hard to unwind | Coordinated rollback points |
 | **Blast Radius** | Agent scope | Combined agent scopes | Explicit per-agent limits |
-| **Autonomy** | As delegated | Multiplied (N agents) | Constrained per role |
+| **Resulting autonomy ceiling** | As justified by ORB | **Lower** than single-agent if O and R degrade faster than B is contained | Same as or higher than single-agent if discipline restores O and R |
 
-**Key insight:** Naive multi-agent multiplication increases autonomy factor without corresponding improvements to observability or reversibility, degrading trust. Disciplined multi-agent design constrains autonomy per-role while centralizing observability.
+**Key insight:** Naive multi-agent topology degrades observability (fragmented state) and reversibility (interleaved actions) faster than it contains blast radius. Under the heuristic `Appropriate Autonomy ∝ (O × R) / Blast Radius`, the justified autonomy ceiling drops, but practitioners often grant *more* autonomy in multi-agent designs (one agent per role, each independently empowered). The gap between deployed autonomy and justified autonomy is where the multi-agent failure modes documented above (silent drift, fragmented state, broken reconciliation) live. Disciplined multi-agent design constrains per-role autonomy and centralizes observability so the ORB kernel is restored to single-agent levels or better.
 
 ## Design Principles
 

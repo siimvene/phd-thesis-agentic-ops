@@ -110,14 +110,26 @@ The SEAgent paper (arXiv:2601.11893) provides:
 
 This demonstrates that architectural enforcement is practical, not just theoretical.
 
-## Trust Equation Mapping
+## ORB Kernel Mapping
 
-| Trust Dimension | Capability Security Contribution |
-|-----------------|----------------------------------|
-| **Observability** | All tool calls pass through auditable gateway |
-| **Reversibility** | MCP can implement approval queues |
-| **Blast Radius** | Per-tool, per-user permissions |
-| **Autonomy** | Structurally bounded by available operations |
+Capability-based security strengthens each dimension of the framework's ORB kernel (and tightens the governance envelope in §4.3.4):
+
+| ORB dimension | Capability-security contribution |
+|---|---|
+| **Observability** | All tool calls pass through an auditable gateway, producing decision-grade provenance |
+| **Reversibility** | MCP can implement approval queues and bounded-action APIs; rollback paths are exposed as explicit capabilities |
+| **Blast Radius** | Per-tool, per-user permissions hard-cap the maximum damage achievable from any one agent path |
+
+| Governance-envelope element | Capability-security contribution |
+|---|---|
+| Approval authority | Capability tokens make authorization explicit and revocable |
+| Auditability | Gateway logs all tool calls with cryptographic identity |
+| Override / kill-switch | Capability revocation provides a structural killswitch |
+| Policy fit | Capability sets directly encode policy exclusions |
+| Evidence requirements | Tool calls can require attached evidence handles |
+| Deployment staging | Capability scope can widen progressively across stages |
+
+The capability model does not generate autonomy on its own; it bounds the operating envelope so that the L0–L3 ladder in §4.3.5 can be applied with deterministic constraints rather than instruction-level promises.
 
 ## Security Through Constraint vs. Instruction
 
