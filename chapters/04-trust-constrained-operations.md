@@ -92,16 +92,17 @@ Key details (Financial Times, February 2026):
 
 Applying this framework's trust equation to the Kiro incident:
 
-| Factor | Score | Evidence |
-|--------|-------|----------|
+| ORB factor | Assessed value | Evidence |
+|---|---|---|
 | **Observability** | Low | Action was not predicted or visible before execution |
 | **Reversibility** | Low | "Delete and recreate" is catastrophic, not incremental |
 | **Blast Radius** | High | Production environment, 13-hour customer impact |
-| **Autonomy** | High | Agent had full operator permissions |
 
-**Trust = (Low × Low) / (High × High) = Critical Failure**
+| Granted autonomy | Justified autonomy under the framework |
+|---|---|
+| Effectively L4+ (full operator permissions, no per-action approval) | L0–L1 maximum (low O × low R, high B → autonomy ceiling at observe/recommend) |
 
-The incident was architecturally inevitable given these parameters.
+**Reading through the framework's heuristic** (Appropriate Autonomy ∝ Observability × Reversibility / Blast Radius): the conditions placed the appropriate autonomy ceiling at L0–L1, but the agent was operating effectively above the framework's L4 exclusion. The incident was architecturally inevitable given the gap between deployed autonomy and what the operating envelope justified.
 
 ### Why Constrained Operations Would Have Prevented This
 

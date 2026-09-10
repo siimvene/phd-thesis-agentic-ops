@@ -8,7 +8,7 @@
 
 Platform engineering stands at an inflection point. The transition from deterministic automation to agent-augmented systems represents the most significant shift in infrastructure management since Infrastructure as Code. This thesis has examined how AI agents can enhance platform engineering across the full lifecycle—from design through operations—while maintaining the trust and governance required for enterprise environments.
 
-This concluding chapter synthesizes the findings, definitively answers the research questions, articulates implications for key audiences, and charts directions for future research.
+This concluding chapter synthesizes the findings, addresses the research questions within the framework's epistemic scope, articulates implications for key audiences, and charts directions for future research. Because the empirical validation phase of the thesis is in progress (see Chapter 10 and Article 1), several research-question answers are presented as **proposed positions grounded in DSR-style stress testing** rather than as empirically validated conclusions. Future work, including the practitioner interviews described in Article 1's validation protocol, will refine these answers.
 
 ---
 
@@ -36,24 +36,26 @@ We documented reusable patterns for human-agent collaboration in platform work. 
 
 These patterns provide actionable guidance for platform teams evaluating agent integration, answering not just "where" but "how" agents should be deployed.
 
-### Contribution 3: The Trust Framework
+### Contribution 3: The Operational Trust Calibration Framework
 
-We proposed a comprehensive framework for reasoning about trust in agentic systems, centered on the Trust Equation:
+We proposed a framework for reasoning about appropriate autonomy levels in operational AI agents, centred on the **ORB kernel**:
 
 ```
-                 Observability × Reversibility × Blast Radius Control
-Effective Trust = ─────────────────────────────────────────────────────
-                                    Autonomy Level
+                          Observability × Reversibility
+Appropriate Autonomy ∝ ──────────────────────────────────
+                                 Blast Radius
 ```
+
+This is a structured decision heuristic, not a numerical formula (Chapter 4 §4.3.2). The framework wraps the kernel in a six-element governance envelope and defines four autonomy levels (L0 Observe and summarize, L1 Recommend and justify, L2 Execute bounded reversible actions with authorization, L3 Conditional bounded autonomy), with broad unsupervised autonomy explicitly excluded from production deployment. The framework is published as Article 1 of the article-based thesis (see [`articles/article-1-trust-calibrated-autonomy/`](../articles/article-1-trust-calibrated-autonomy/)).
 
 Supporting constructs include:
 
-- **The Deterministic-Probabilistic Shift** — Articulating why traditional automation assumptions fail for agentic systems
-- **Progressive Autonomy Model** — Adapting the ATF's "earned trust" concept for platform engineering contexts
-- **Trust-Building Patterns** — Five concrete patterns (Audit Everything, Rewind Capability, Blast Radius Containment, Human Checkpoints, Progressive Trust)
-- **The Complexity Cliff** — Analysis of how trust requirements scale non-linearly from single-team to enterprise deployments
+- **The Deterministic-Probabilistic Shift** — Articulating why traditional automation assumptions fail for agentic systems (Chapter 3)
+- **Progressive Autonomy Mechanisms** — Adapting the CSA ATF's "earned trust" concept onto the L0–L3 ladder for platform engineering contexts (Chapter 4 §4.4.3)
+- **Trust-Building Patterns** — Five concrete patterns (Audit Everything, Rewind Capability, Blast Radius Containment, Human Checkpoints, Progressive Trust) operationalising the governance envelope at scale (Chapter 5)
+- **The Complexity Cliff** — Analysis of how the ORB ratios scale non-linearly from single-team to enterprise deployments
 
-This framework provides both theoretical grounding and practical mechanisms for building trustworthy agent-enhanced systems.
+This framework provides theoretical grounding and practical mechanisms for building trustworthy agent-enhanced systems. Empirical validation of the kernel and tier boundaries is in progress through the practitioner-validation phase described in Chapter 10 §10.4.1.
 
 ### Contribution 4: Practical Guidance
 
@@ -85,7 +87,7 @@ This roadmap enables organizations to move from experimentation to systematic ad
 **Answer:** Agents add the most immediate value in the **Operate** and **Build** phases, with **Govern** as an emerging high-value area.
 
 Specifically:
-- **Operate:** Alert triage and noise reduction can recover 2-4 hours per engineer per day. Root cause analysis assistance can reduce MTTR by 30-50%. These are high-frequency, well-bounded tasks where agent pattern recognition excels.
+- **Operate:** Alert triage and noise reduction are high-frequency, well-bounded tasks where agent pattern recognition is plausibly impactful. Practitioner and vendor reports cite efficiency gains in the range of hours per engineer per day for triage and meaningful MTTR reduction for root cause assistance (e.g., HolmesGPT/Robusta, AWS DevOps Agent case studies cited in Chapter 6); these figures are external claims, not empirical findings of this thesis. The empirical validation phase (Article 1, Chapter 10) is designed to test whether the trust framework correctly predicts where these gains materialize and where they do not.
 - **Build:** IaC generation, security scanning, and test generation benefit from agent consistency and breadth of knowledge. Code review augmentation catches issues before production.
 - **Govern:** Compliance evidence collection and policy checking are procedural, high-frequency tasks well-suited to automation.
 
@@ -123,7 +125,7 @@ At enterprise scale, **federation** is essential: central framework with distrib
 - **High risk** (production changes): Human approval required
 - **Critical risk** (irreversible actions): Human-only with agent assistance
 
-The **Fit Assessment Scorecard** provides a practical tool: score tasks on boundedness, reversibility, observability, context availability, frequency, and expertise gap. Scores 15-18 suggest Level 2-3 automation; scores below 10 indicate Level 0-1 only.
+The **Fit Assessment Scorecard** provides a practical reasoning tool: score tasks on boundedness, reversibility, observability, context availability, frequency, and expertise gap. Higher scores correspond to deployment at the higher autonomy levels (L2–L3 in the framework of Chapter 4) and lower scores constrain deployment to L0–L1. The specific score-to-level thresholds are **proposed practitioner judgment, not empirically validated cutoffs** (see Chapter 4 §4.3.6 limitations and Chapter 10 evaluation). Organizations should adapt thresholds to their own risk tolerance and regulatory context.
 
 Key principle: **Agents and humans have complementary strengths.** Agents excel at pattern recognition at scale, consistent rule application, rapid information synthesis, and 24/7 availability. Humans excel at novel situation handling, stakeholder communication, ethical judgment, strategic prioritization, and creative problem-solving. Effective collaboration leverages both.
 

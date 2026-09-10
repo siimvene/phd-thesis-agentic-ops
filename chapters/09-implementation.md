@@ -107,21 +107,21 @@ A dedicated agent service handles requests from multiple applications. Character
 
 ### 9.2.2 Choosing Topology by Trust Requirements
 
-The Trust Equation from Chapter 5 guides topology selection:
+The ORB kernel from Chapter 4 guides topology selection:
 
 ```
-                 Observability × Reversibility × Blast Radius Control
-Effective Trust = ─────────────────────────────────────────────────────
-                                    Autonomy Level
+                          Observability × Reversibility
+Appropriate Autonomy ∝ ──────────────────────────────────
+                                 Blast Radius
 ```
 
-| Topology | Observability | Reversibility | Blast Radius | Suitable Autonomy |
-|----------|--------------|---------------|--------------|-------------------|
-| Embedded | Low (requires instrumentation) | Low (shared state) | Unbounded (process scope) | Low (L1-L2) |
-| Sidecar | Medium (structured logging) | Medium (process restart) | Bounded per pod | Medium (L2-L3) |
-| Centralized | High (native auditing) | High (session management) | Controlled (tenant isolation) | High (L3-L4) |
+| Topology | Observability | Reversibility | Blast Radius | Justified Autonomy Ceiling |
+|---|---|---|---|---|
+| Embedded | Low (requires instrumentation) | Low (shared state) | Unbounded (process scope) | L0–L1 |
+| Sidecar | Medium (structured logging) | Medium (process restart) | Bounded per pod | L1–L2 |
+| Centralized | High (native auditing) | High (session management) | Controlled (tenant isolation) | L2–L3 |
 
-**Recommendation:** Enterprise deployments requiring L3+ autonomy should use centralized or sidecar topologies with explicit trust boundaries.
+**Recommendation:** Enterprise deployments operating at L2 or L3 should use centralized or sidecar topologies with explicit trust boundaries. Embedded topologies are restricted to L0–L1 unless observability and reversibility are actively engineered up.
 
 ### 9.2.3 Hybrid Topologies
 
@@ -1634,11 +1634,11 @@ The constraint table from Chapter 4 applies at every level — what changes is t
 **Trust Implementation:**
 
 | Autonomy Level | What It Looks Like |
-|----------------|-------------------|
-| L1 Supervised | Agent suggests commands, human copy-pastes to terminal |
-| L2 Assisted | Agent prepares script, human reviews and executes |
-| L3 Monitored | Agent executes on jump host, human reviews session log |
-| L4+ | Not recommended without infrastructure investment |
+|---|---|
+| **L0** Observe and summarize | Agent surfaces relevant logs and recent changes, no recommendation |
+| **L1** Recommend and justify | Agent suggests commands, human copy-pastes to terminal |
+| **L2** Execute bounded reversible actions with authorization | Agent prepares script, human reviews and approves, agent executes on jump host with session recording |
+| **L3** and beyond | Not recommended without infrastructure investment in observability and reversibility |
 
 **Observability:** Bash history, SSH session recording (script command), simple log aggregation.
 
@@ -1660,10 +1660,10 @@ script -a /var/log/sessions/$(date +%Y%m%d-%H%M%S)-$(whoami).log
 **Trust Implementation:**
 
 | Autonomy Level | What It Looks Like |
-|----------------|-------------------|
-| L1-L2 | Standard assisted workflows |
-| L3 Monitored | Agent executes approved playbooks, logs to central system |
-| L4 Bounded | Agent manages non-production environments autonomously |
+|---|---|
+| **L0–L1** | Surface evidence, suggest commands; standard assisted workflows |
+| **L2** Execute bounded reversible actions with authorization | Agent executes approved playbooks per action, logs to central system |
+| **L3** Conditional bounded autonomy | Agent manages **non-production** environments within a pre-approved envelope, with anomaly alerting and complete logging — production stays at L2 until track record justifies promotion |
 
 **Observability:** Centralized logging (ELK, Grafana Loki), basic metrics (Prometheus), deployment tracking.
 

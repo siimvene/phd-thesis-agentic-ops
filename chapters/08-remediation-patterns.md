@@ -29,17 +29,18 @@ The blast radius of a remediation action can exceed the blast radius of the orig
 
 ### 8.2.2 The Autonomy Spectrum
 
-Applying the trust framework from Chapter 4:
+Applying the L0–L3 ladder from Chapter 4:
 
 | Level | Remediation Autonomy | Example |
-|-------|---------------------|---------|
-| L1 Supervised | Agent suggests, human executes | "Recommend rollback to v2.3.1" |
-| L2 Assisted | Agent prepares, human approves | "Rollback ready. Execute? [Yes/No]" |
-| L3 Monitored | Agent executes approved actions | Auto-rollback for known patterns |
-| L4 Bounded | Agent executes within scope | Restart pods in non-prod |
-| L5 Trusted | Autonomous remediation | Not recommended for production |
+|---|---|---|
+| **L0** Observe and summarize | Agent surfaces remediation evidence; no recommendation | "Service X has restarted N times in the last hour; here are the relevant logs and traces" |
+| **L1** Recommend and justify | Agent suggests; human executes | "Recommend rollback to v2.3.1 because [evidence]" |
+| **L2** Execute bounded reversible actions with authorization | Agent prepares and executes after explicit human approval | "Rollback ready. Execute? [Yes/No]" → on yes, agent runs the prepared rollback |
+| **L3** Conditional bounded autonomy | Agent executes pre-approved reversible actions within a defined envelope, with complete logging | Auto-rollback for known patterns where O × R is high and B is scoped |
 
-**Key principle:** Production remediation should rarely exceed L3, and only for well-understood, reversible actions.
+**Beyond L3 is out of scope** for production remediation under this framework. Vendor frameworks that label such tiers as "Trusted" or "Full Autonomy" are excluded — the burden of justification in regulated and public-impact environments exceeds what current literature supports (Chapter 4 §4.3.5).
+
+**Key principle:** Production remediation should be deployed at the lowest autonomy level that achieves the operational goal. Pattern-level mappings later in this chapter assume L1–L3 ranges with most production deployments concentrated at L1–L2 until track record justifies L3.
 
 ### 8.2.3 The Human-Required Boundary
 
@@ -287,7 +288,7 @@ scaling_policy:
 
 ### Autonomy Level
 
-L3-L4: Autonomous within defined bounds. Human approval for scaling beyond limits.
+L2–L3: Bounded reversible scaling with explicit per-action approval at L2; pre-approved envelope (within configured min/max replicas, max-cost-per-hour, cooldown windows) at L3. Human approval required for any scaling beyond pre-configured limits.
 
 ---
 
@@ -412,14 +413,14 @@ RECOMMENDATION:
 Agent-assisted remediation requires careful scoping:
 
 | Pattern | Action Type | Autonomy Level | Key Safeguard |
-|---------|-------------|----------------|---------------|
-| Runbook Execution | Documented procedures | L2-L3 | Pre/post checks, step verification |
-| Automated Rollback | Deployment reversion | L2-L3 | Deployment correlation, known-good target |
-| Capacity Adjustment | Resource scaling | L3-L4 | Bounds, cost limits |
-| Circuit Breaking | Failure isolation | L4 | Service mesh integration |
+|---|---|---|---|
+| Runbook Execution | Documented procedures | L2–L3 | Pre/post checks, step verification |
+| Automated Rollback | Deployment reversion | L2–L3 | Deployment correlation, known-good target |
+| Capacity Adjustment | Resource scaling | L2–L3 | Bounds, cost limits, cooldown |
+| Circuit Breaking | Failure isolation | L3 | Service mesh integration with pre-approved circuit policies |
 
 **Key principles:**
-1. Production remediation should rarely exceed L3
+1. Production remediation operates at L1–L3 only; broader unsupervised autonomy is out of scope under this framework
 2. Reversible actions before irreversible
 3. Scope constraints are mandatory
 4. Human judgment for novel/high-stakes situations

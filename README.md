@@ -26,10 +26,10 @@ This thesis develops a trust framework and operational patterns for integrating 
 
 ## Key Contributions
 
-1. **Trust Framework** — Constraint-based model mapping Observability, Reversibility, and Blast Radius to autonomy levels, grounded in organizational trust literature
-2. **Operational Patterns** — Eight enterprise patterns for agent-enhanced observability, triage, and remediation
-3. **Governance Guidance** — Practical controls for deploying agents in regulated environments
-4. **Evaluation Framework** — Metrics and methods for assessing agent-enhanced operations
+1. **Operational Trust Calibration Framework** — A heuristic linking three operational constraints (Observability, Reversibility, Blast Radius) and a six-element governance envelope to four autonomy levels (L0–L3), grounded in organizational trust theory (Mayer et al., 1995). Published as **Article 1** (see [`articles/`](articles/)).
+2. **Eight Enterprise Patterns** — Architectural patterns for safely deploying operational agents (Chapter 9 §9.7); supplemented by additional domain-level patterns in Chapters 5–8 covering governance, observability, triage, and remediation.
+3. **Governance Guidance** — Practical controls for deploying agents in regulated environments, with emphasis on public-sector ICT context.
+4. **Validation Protocol** — A practitioner-validation design (semi-structured expert interviews with scenario stress testing) operationalised for the empirical phase of the thesis (see Chapter 10 §10.4.1 and [`articles/article-1-trust-calibrated-autonomy/`](articles/article-1-trust-calibrated-autonomy/)).
 
 ---
 
@@ -51,16 +51,36 @@ This thesis develops a trust framework and operational patterns for integrating 
 
 ---
 
-## The Trust Equation
+## The ORB Kernel
 
 ```
-Trust = (Observability × Reversibility × Blast Radius) / Autonomy
+                          Observability × Reversibility
+Appropriate Autonomy ∝ ──────────────────────────────────
+                                 Blast Radius
 ```
 
-Derived from Mayer, Davis & Schoorman's (1995) integrative model of organizational trust:
-- **Observability** ← Ability (can we verify competence?)
-- **Reversibility** ← Integrity (are actions correctable?)  
-- **Blast Radius** ← Benevolence (what's the potential harm?)
+A structured decision heuristic, **not** a numerical formula. As observability and reversibility increase, a higher autonomy level becomes justifiable. As blast radius increases, the acceptable autonomy ceiling drops.
+
+Derived from Mayer, Davis & Schoorman's (1995) integrative model of organizational trust through an explicit substitution argument: AI agents have demonstrable *Ability* but no assessable *Benevolence* or *Integrity*, so trust must rely on structural safeguards instead of trustee character.
+
+| Mayer et al. Factor | Agentic system translation |
+|---|---|
+| Ability | Assumed (the agent can execute) |
+| Benevolence | Cannot assess → **Observability** (can we see what it is doing?) |
+| Integrity | Cannot assess → **Reversibility** + **Blast Radius** (can we recover, and how bad is it if we cannot?) |
+
+The kernel is wrapped in a six-element **governance envelope** (approval authority, auditability + RAG provenance, override / kill-switch, policy fit, evidence requirements, deployment staging) that determines under what conditions a given autonomy level is permissible.
+
+### Four autonomy levels
+
+| Level | Name |
+|---|---|
+| **L0** | Observe and summarize |
+| **L1** | Recommend and justify |
+| **L2** | Execute bounded reversible actions with authorization |
+| **L3** | Conditional bounded autonomy |
+
+L4 / "Trusted" / "Full Autonomy" is **deliberately excluded from production** in this framework. See Chapter 4 §4.3.5 for the full argument.
 
 ---
 
